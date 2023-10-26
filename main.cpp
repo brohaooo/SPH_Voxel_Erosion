@@ -36,8 +36,8 @@ void processInput(GLFWwindow *window);
 const unsigned int SCR_WIDTH = 1000;
 const unsigned int SCR_HEIGHT = 1000;
 
-// camera
-Camera camera(glm::vec3(0.f, 0.f, 0.5f));
+// camera 
+Camera camera(glm::vec3(1.39092f, 1.55529f, 2.59475f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -46,6 +46,60 @@ bool firstMouse = true;
 float deltaTime = 0.0f;	// time between current frame and last frame
 float lastFrame = 0.0f;
 float LastTime = 0.0f;
+
+
+
+void set_up_CoordinateAxes(unsigned int & coordi_VBO, unsigned int & coordi_VAO) {
+    GLfloat xyz_axis[] = {
+     0.f, 0.f, 0.f,
+     1.f, 0.f, 0.f,
+     0.f, 0.f, 0.f,
+     0.f, 1.f, 0.f,
+     0.f, 0.f, 1.f,
+    };
+    glGenVertexArrays(1, &coordi_VAO);
+    glGenBuffers(1, &coordi_VBO);
+
+    glBindVertexArray(coordi_VAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, coordi_VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(xyz_axis), xyz_axis, GL_STATIC_DRAW);
+
+    
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+}
+
+void renderCoordinateAxes(Shader & ourShader, unsigned int & coordi_VBO, unsigned int & coordi_VAO) {
+    ourShader.use();
+    // pass projection matrix to shader (note that in this case it could change every frame)
+    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.5f, 100.0f);
+    ourShader.setMat4("projection", projection);
+
+    // camera/view transformation
+    glm::mat4 view = camera.GetViewMatrix();
+    ourShader.setMat4("view", view);
+
+    // render boxes
+    glBindVertexArray(coordi_VAO);
+
+    glm::mat4 model = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
+
+    ourShader.setMat4("model", model);
+
+    glCullFace(GL_BACK);
+    glm::vec4 color1 = glm::vec4(0.1f, 0.4f, 0.2f, 1.0f);
+    ourShader.setVec4("color", color1);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    
+
+    // 绘制坐标系线段
+    glDrawArrays(GL_LINES, 0, 6);
+}
+
+
+
 
 int main()
 {
@@ -101,7 +155,7 @@ int main()
 
     // modify camera infos
     camera.MovementSpeed = 0.3f;
-    camera.Front = glm::vec3(-0.818379,-0.197657,-0.539618);
+    camera.Front = glm::vec3(-0.373257, -0.393942, -0.826684);
 
 
     GLfloat vertices[] = {
@@ -109,6 +163,17 @@ int main()
      0.5f, -0.5f, -0.5f,
      0.5f,  0.5f, -0.5f
     };
+
+    GLfloat xyz_axis[] = {
+     0.f, 0.f, 0.f,
+     1.f, 0.f, 0.f,
+     0.f, 0.f, 0.f,
+     0.f, 1.f, 0.f,
+     0.f, 0.f, 1.f,
+    };
+
+
+
     int num_vertices = sizeof(vertices)/12;
 
 
@@ -123,16 +188,28 @@ int main()
 
     // glBufferData is used to copy user-defined data into the currently bound buffer
 
+
+    
+    
+
     // position attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
 
+
+    unsigned int coordi_VBO, coordi_VAO;
+    set_up_CoordinateAxes(coordi_VBO, coordi_VAO);
+
+
+
+
+
+
     // tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
     // -------------------------------------------------------------------------------------------
     ourShader.use();
-    // ourShader.setInt("texture1", 0);
-    // ourShader.setInt("texture2", 1);
+    
 
 
     // render loop
@@ -201,6 +278,10 @@ int main()
         // activate shader
         ourShader.use();
 
+
+        
+
+
         // pass projection matrix to shader (note that in this case it could change every frame)
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.5f, 100.0f);
         ourShader.setMat4("projection", projection);
@@ -230,11 +311,14 @@ int main()
         ourShader.setVec4("color", color3);
         glDrawArrays(GL_POINTS, 0, num_vertices);
 
-
         
-        // std::cout<< sizeof(vertices)<<std::endl;
-        // std::cout<<"camera pos:"<<camera.Position[0]<<" "<<camera.Position[1]<<" "<<camera.Position[2]<<std::endl;
-        // std::cout<<"camera front:"<<camera.Front[0]<<" "<<camera.Front[1]<<" "<<camera.Front[2]<<std::endl;
+        
+        renderCoordinateAxes(ourShader, coordi_VBO, coordi_VAO);
+
+
+
+        std::cout<<"camera pos:"<<camera.Position[0]<<" "<<camera.Position[1]<<" "<<camera.Position[2]<<std::endl;
+        std::cout<<"camera front:"<<camera.Front[0]<<" "<<camera.Front[1]<<" "<<camera.Front[2]<<std::endl;
     
 
     
