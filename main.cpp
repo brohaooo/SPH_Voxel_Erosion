@@ -310,6 +310,8 @@ int main()
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
+    glPointSize(4.0);
+    glLineWidth(2.0);
     // modify camera infos before render loop starts
     camera.MovementSpeed = 1.0f;
     camera.Front = glm::vec3(-0.373257, -0.393942, -0.826684);
@@ -325,9 +327,7 @@ int main()
 
     
 
-    
-
-    
+    // scene building----------------------
 
     // set up coordinate axes to render
     unsigned int coordi_VBO, coordi_VAO;
@@ -338,15 +338,7 @@ int main()
     unsigned int cube_VAO[2];
     set_up_cube_base(cube_VBO, cube_VAO);
 
-
-    
-    
-
-
-    // render loop
-    // -----------
-    glPointSize(4.0);
-    glLineWidth(2.0);
+    // --------------------------------
     
     
 
@@ -478,7 +470,7 @@ void processInput(GLFWwindow *window)
     if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
         camera.ProcessKeyboard(DOWN, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS){
-        // nothing yet
+        // nothing yet, maybe add some functions later for space key
     }
 }
 
