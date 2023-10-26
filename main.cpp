@@ -48,6 +48,11 @@ float lastFrame = 0.0f;
 float LastTime = 0.0f;
 
 
+glm::vec4 red = glm::vec4(1.f, 0.f, 0.f, 1.0f);
+glm::vec4 green = glm::vec4(0.f, 1.f, 0.f, 1.0f);
+glm::vec4 blue = glm::vec4(0.f, 0.f, 1.f, 1.0f);
+
+
 
 void set_up_CoordinateAxes(unsigned int & coordi_VBO, unsigned int & coordi_VAO) {
     GLfloat xyz_axis[] = {
@@ -89,13 +94,12 @@ void renderCoordinateAxes(Shader & ourShader, unsigned int & coordi_VBO, unsigne
     ourShader.setMat4("model", model);
 
     glCullFace(GL_BACK);
-    glm::vec4 color1 = glm::vec4(0.1f, 0.4f, 0.2f, 1.0f);
-    ourShader.setVec4("color", color1);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    
-
-    // 绘制坐标系线段
-    glDrawArrays(GL_LINES, 0, 6);
+    ourShader.setVec4("color", red);
+    glDrawArrays(GL_LINES, 0, 2);
+    ourShader.setVec4("color", green);
+    glDrawArrays(GL_LINES, 2, 2);
+    ourShader.setVec4("color", blue);
+    glDrawArrays(GL_LINES, 4, 2);
 }
 
 
@@ -162,14 +166,6 @@ int main()
     -0.5f, -0.5f, -0.5f,
      0.5f, -0.5f, -0.5f,
      0.5f,  0.5f, -0.5f
-    };
-
-    GLfloat xyz_axis[] = {
-     0.f, 0.f, 0.f,
-     1.f, 0.f, 0.f,
-     0.f, 0.f, 0.f,
-     0.f, 1.f, 0.f,
-     0.f, 0.f, 1.f,
     };
 
 
