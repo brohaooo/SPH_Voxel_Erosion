@@ -105,10 +105,10 @@ void renderCoordinateAxes(Shader & ourShader, unsigned int & coordi_VBO, unsigne
 
 
 // set up a basic cube with VBO and VAO
-void set_up_cube_base(unsigned int& cube_VBO, unsigned int& cube_VAO) {
+void set_up_cube_base(unsigned int cube_VBO[2], unsigned int cube_VAO[2]) {
     // a cube has six faces, each face has two triangles, each triangle has three vertices
     // so here's 6*2*3=36 vertices
-    GLfloat vertices[] = {
+    GLfloat cube_triangle_vertices[] = {
      // Front face
     -0.5f, -0.5f, 0.5f,
      0.5f, -0.5f, 0.5f,
@@ -158,25 +158,75 @@ void set_up_cube_base(unsigned int& cube_VBO, unsigned int& cube_VAO) {
      -0.5f, -0.5f, -0.5f
     };
 
+    GLfloat cube_edge_vertices[] = {
+        // Front face
+        -0.5f, -0.5f, 0.5f,
+         0.5f, -0.5f, 0.5f,
+
+         0.5f, -0.5f, 0.5f,
+         0.5f,  0.5f, 0.5f,
+
+         0.5f,  0.5f, 0.5f,
+         -0.5f,  0.5f, 0.5f,
+
+         -0.5f,  0.5f, 0.5f,
+         -0.5f, -0.5f, 0.5f,
+         // Back face
+        -0.5f, -0.5f, -0.5f,
+         0.5f, -0.5f, -0.5f,
+
+         0.5f, -0.5f, -0.5f,
+         0.5f,  0.5f, -0.5f,
+
+         0.5f,  0.5f, -0.5f,
+         -0.5f,  0.5f, -0.5f,
+
+         -0.5f,  0.5f, -0.5f,
+         -0.5f, -0.5f, -0.5f,
+         // Right face
+        0.5f, -0.5f, 0.5f,
+        0.5f, -0.5f, -0.5f,
+
+        0.5f,  0.5f, -0.5f,
+        0.5f,  0.5f, 0.5f,
+        // Left face
+        -0.5f, -0.5f, 0.5f,
+        -0.5f, -0.5f, -0.5f,
+        
+        -0.5f,  0.5f, -0.5f,
+        -0.5f,  0.5f, 0.5f,
+        
+    };
 
 
-    glGenVertexArrays(1, &cube_VAO);
-    glGenBuffers(1, &cube_VBO);
-    glBindVertexArray(cube_VAO);
 
-    glBindBuffer(GL_ARRAY_BUFFER, cube_VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glGenVertexArrays(2, cube_VAO);
+    glGenBuffers(2, cube_VBO);
 
 
+    glBindVertexArray(cube_VAO[0]);
+    glBindBuffer(GL_ARRAY_BUFFER, cube_VBO[0]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(cube_triangle_vertices), cube_triangle_vertices, GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
+
+
+    glBindVertexArray(cube_VAO[1]);
+    glBindBuffer(GL_ARRAY_BUFFER, cube_VBO[1]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(cube_edge_vertices), cube_edge_vertices, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+
+
+
 }
 
 
-void render_cube(Shader& ourShader, unsigned int& cube_VBO, unsigned int& cube_VAO, glm::mat4 model = glm::mat4(1.0f)) {
+void render_cube(Shader& ourShader, unsigned int cube_VBO[2], unsigned int cube_VAO[2], glm::mat4 model = glm::mat4(1.0f)) {
     // activate selected shader
     ourShader.use();
-    glBindVertexArray(cube_VAO);
+    glBindVertexArray(cube_VAO[0]);
 
     // get VP matrix and set it together with Model matrix
     glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.5f, 100.0f);
@@ -185,7 +235,6 @@ void render_cube(Shader& ourShader, unsigned int& cube_VBO, unsigned int& cube_V
     ourShader.setMat4("view", view);
     ourShader.setMat4("model", model);
 
-    // draw xyz axis
     
     
     /*ourShader.setVec4("color", cube_edge_color);
@@ -195,6 +244,14 @@ void render_cube(Shader& ourShader, unsigned int& cube_VBO, unsigned int& cube_V
     ourShader.setVec4("color", cube_color);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glDrawArrays(GL_TRIANGLES, 0, 36);
+
+
+    glBindVertexArray(cube_VAO[1]);
+    ourShader.setVec4("color", cube_edge_color);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glDrawArrays(GL_LINES, 0, 24);
+    
+
 }
 
 
@@ -268,41 +325,21 @@ int main()
 
     
 
-    // set up vertex data (and buffer(s)) and configure vertex attributes
-    GLfloat vertices[] = {
-    -0.5f, -0.5f, -0.5f,
-     0.5f, -0.5f, -0.5f,
-     0.5f,  0.5f, -0.5f
-    };
+    
 
-    int num_vertices = sizeof(vertices)/12;
-
-    unsigned int VBO, VAO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-
-    glBindVertexArray(VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-
+    
 
     // set up coordinate axes to render
     unsigned int coordi_VBO, coordi_VAO;
     set_up_CoordinateAxes(coordi_VBO, coordi_VAO);
 
     // set up basic cube
-    unsigned int cube_VBO, cube_VAO;
+    unsigned int cube_VBO[2];
+    unsigned int cube_VAO[2];
     set_up_cube_base(cube_VBO, cube_VAO);
 
 
-    // tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
-    // -------------------------------------------------------------------------------------------
-    ourShader.use();
+    
     
 
 
@@ -310,10 +347,7 @@ int main()
     // -----------
     glPointSize(4.0);
     glLineWidth(2.0);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    glm::vec4 color1 = glm::vec4(0.1f, 0.4f, 0.2f, 1.0f);
-    glm::vec4 color2 = glm::vec4(0.9f, 0.6f, 0.5f, 1.0f);
-    glm::vec4 color3 = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+    
     
 
 
@@ -352,49 +386,15 @@ int main()
         // -----
         processInput(window);
 
-        // render
+        // render part is here
         // ------
+        // clear screen
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
 
 
-        // activate shader
-        ourShader.use();
-
-
-        
-
-
-        // pass projection matrix to shader (note that in this case it could change every frame)
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.5f, 100.0f);
-        ourShader.setMat4("projection", projection);
-
-        // camera/view transformation
-        glm::mat4 view = camera.GetViewMatrix();
-        ourShader.setMat4("view", view);
-
-        // render boxes
-        glBindVertexArray(VAO);
-        
-        glm::mat4 model = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
-        
-        ourShader.setMat4("model", model);
-        
-        ourShader.setVec4("color", color1);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        glDrawArrays(GL_TRIANGLES, 0, num_vertices);
-        
-        ourShader.setVec4("color", color2);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        glDrawArrays(GL_TRIANGLES, 0, num_vertices);
-
-    
-
-        ourShader.setVec4("color", color3);
-        glDrawArrays(GL_POINTS, 0, num_vertices);
-
-        
-        
+        // call each render function here
+        // ------------------------------
         renderCoordinateAxes(ourShader, coordi_VBO, coordi_VAO);
 
         glm::mat4 cube_position = glm::mat4(1.0f);
@@ -405,11 +405,18 @@ int main()
 
 
 
+
+        // --------------------------------
+
+        // print camera info
         std::cout<<"camera pos:"<<camera.Position[0]<<" "<<camera.Position[1]<<" "<<camera.Position[2]<<std::endl;
         std::cout<<"camera front:"<<camera.Front[0]<<" "<<camera.Front[1]<<" "<<camera.Front[2]<<std::endl;
     
 
     
+
+
+
         // imgui---------------------------
         // 1. ImGui render
         ImGui_ImplOpenGL3_NewFrame();
@@ -438,11 +445,12 @@ int main()
 
     // optional: de-allocate all resources once they've outlived their purpose:
     // ------------------------------------------------------------------------
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-
     glDeleteVertexArrays(1, &coordi_VAO);
     glDeleteBuffers(1, &coordi_VBO);
+
+    glDeleteVertexArrays(2, cube_VAO);
+    glDeleteBuffers(2, cube_VBO);
+    
 
     // glfw: terminate, clearing all previously allocated GLFW resources.
     // ------------------------------------------------------------------
