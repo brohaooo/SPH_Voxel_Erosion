@@ -26,7 +26,7 @@
 
 
 
-
+// input callback functions
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
@@ -48,13 +48,18 @@ float lastFrame = 0.0f;
 float LastTime = 0.0f;
 
 
+// pre-defined colors
 glm::vec4 red = glm::vec4(1.f, 0.f, 0.f, 1.0f);
 glm::vec4 green = glm::vec4(0.f, 1.f, 0.f, 1.0f);
 glm::vec4 blue = glm::vec4(0.f, 0.f, 1.f, 1.0f);
+glm::vec4 cube_color = glm::vec4(0.4f, 0.4f, 1.f, 1.0f);
+glm::vec4 cube_edge_color = glm::vec4(0.8f, 0.8f, 1.f, 1.0f);
 
 
-
+// set up coordinate axes, return VBO and VAO reference
 void set_up_CoordinateAxes(unsigned int & coordi_VBO, unsigned int & coordi_VAO) {
+    // set up vertex data (and buffer(s)) and configure vertex attributes
+    // three lines: x, y, z
     GLfloat xyz_axis[] = {
      0.f, 0.f, 0.f,
      1.f, 0.f, 0.f,
@@ -64,7 +69,6 @@ void set_up_CoordinateAxes(unsigned int & coordi_VBO, unsigned int & coordi_VAO)
     };
     glGenVertexArrays(1, &coordi_VAO);
     glGenBuffers(1, &coordi_VBO);
-
     glBindVertexArray(coordi_VAO);
 
     glBindBuffer(GL_ARRAY_BUFFER, coordi_VBO);
@@ -73,27 +77,23 @@ void set_up_CoordinateAxes(unsigned int & coordi_VBO, unsigned int & coordi_VAO)
     
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-
 }
 
 void renderCoordinateAxes(Shader & ourShader, unsigned int & coordi_VBO, unsigned int & coordi_VAO) {
+    // activate selected shader
     ourShader.use();
-    // pass projection matrix to shader (note that in this case it could change every frame)
-    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.5f, 100.0f);
-    ourShader.setMat4("projection", projection);
-
-    // camera/view transformation
-    glm::mat4 view = camera.GetViewMatrix();
-    ourShader.setMat4("view", view);
-
-    // render boxes
     glBindVertexArray(coordi_VAO);
 
-    glm::mat4 model = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
-
+    // get MVP matrix and set it
+    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.5f, 100.0f);
+    ourShader.setMat4("projection", projection);
+    glm::mat4 view = camera.GetViewMatrix();
+    ourShader.setMat4("view", view);
+    glm::mat4 model = glm::mat4(1.0f); 
     ourShader.setMat4("model", model);
 
-    glCullFace(GL_BACK);
+
+    // draw xyz axis
     ourShader.setVec4("color", red);
     glDrawArrays(GL_LINES, 0, 2);
     ourShader.setVec4("color", green);
@@ -101,6 +101,103 @@ void renderCoordinateAxes(Shader & ourShader, unsigned int & coordi_VBO, unsigne
     ourShader.setVec4("color", blue);
     glDrawArrays(GL_LINES, 4, 2);
 }
+
+
+
+// set up a basic cube with VBO and VAO
+void set_up_cube_base(unsigned int& cube_VBO, unsigned int& cube_VAO) {
+    // a cube has six faces, each face has two triangles, each triangle has three vertices
+    // so here's 6*2*3=36 vertices
+    GLfloat vertices[] = {
+     // Front face
+    -0.5f, -0.5f, 0.5f,
+     0.5f, -0.5f, 0.5f,
+     0.5f,  0.5f, 0.5f,
+    -0.5f, -0.5f, 0.5f,
+     0.5f,  0.5f, 0.5f,
+    -0.5f,  0.5f, 0.5f,
+
+    // Back face
+    -0.5f, -0.5f, -0.5f,
+     0.5f,  0.5f, -0.5f,
+     0.5f, -0.5f, -0.5f,
+     0.5f,  0.5f, -0.5f,
+    -0.5f, -0.5f, -0.5f,
+    -0.5f,  0.5f, -0.5f,
+
+    // Right face
+     0.5f, -0.5f, 0.5f,
+     0.5f, -0.5f, -0.5f,
+     0.5f,  0.5f, -0.5f,
+     0.5f, -0.5f, 0.5f,
+     0.5f,  0.5f, -0.5f,
+     0.5f,  0.5f, 0.5f,
+
+     // Left face
+     -0.5f, -0.5f, -0.5f,
+     -0.5f, -0.5f, 0.5f,
+     -0.5f, 0.5f, -0.5f,
+     -0.5f, 0.5f, -0.5f,
+     -0.5f, -0.5f, 0.5f,
+     -0.5f, 0.5f, 0.5f,
+
+     // Top face
+     -0.5f, 0.5f, 0.5f,
+      0.5f, 0.5f, 0.5f,
+      0.5f, 0.5f, -0.5f,
+     -0.5f, 0.5f, 0.5f,
+      0.5f, 0.5f, -0.5f,
+     -0.5f, 0.5f, -0.5f,
+
+     // Bottom face
+     0.5f, -0.5f, 0.5f,
+     -0.5f, -0.5f, 0.5f,
+     0.5f, -0.5f, -0.5f,
+     0.5f, -0.5f, -0.5f,
+     -0.5f, -0.5f, 0.5f,
+     -0.5f, -0.5f, -0.5f
+    };
+
+
+
+    glGenVertexArrays(1, &cube_VAO);
+    glGenBuffers(1, &cube_VBO);
+    glBindVertexArray(cube_VAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, cube_VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+}
+
+
+void render_cube(Shader& ourShader, unsigned int& cube_VBO, unsigned int& cube_VAO, glm::mat4 model = glm::mat4(1.0f)) {
+    // activate selected shader
+    ourShader.use();
+    glBindVertexArray(cube_VAO);
+
+    // get VP matrix and set it together with Model matrix
+    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.5f, 100.0f);
+    ourShader.setMat4("projection", projection);
+    glm::mat4 view = camera.GetViewMatrix();
+    ourShader.setMat4("view", view);
+    ourShader.setMat4("model", model);
+
+    // draw xyz axis
+    
+    
+    /*ourShader.setVec4("color", cube_edge_color);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glDrawArrays(GL_TRIANGLES, 0, 36);*/
+    
+    ourShader.setVec4("color", cube_color);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+}
+
+
 
 
 
@@ -131,14 +228,16 @@ int main()
         glfwTerminate();
         return -1;
     }
+    // set window position and size
     glfwMakeContextCurrent(window);
+    // register callback functions
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
 
     // tell GLFW to capture our mouse
-    // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
     // glad: load all OpenGL function pointers
     // ---------------------------------------
@@ -148,30 +247,35 @@ int main()
         return -1;
     }
 
+
     // configure global opengl state
     // -----------------------------
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    // modify camera infos before render loop starts
+    camera.MovementSpeed = 1.0f;
+    camera.Front = glm::vec3(-0.373257, -0.393942, -0.826684);
 
-    // build and compile our shader zprogram
+
+
+
+
+    // build and compile our shader program
     // ------------------------------------
     Shader ourShader("../../../shader/shader.vs", "../../../shader/shader.fs");
     
 
-    // modify camera infos
-    camera.MovementSpeed = 0.3f;
-    camera.Front = glm::vec3(-0.373257, -0.393942, -0.826684);
+    
 
-
+    // set up vertex data (and buffer(s)) and configure vertex attributes
     GLfloat vertices[] = {
     -0.5f, -0.5f, -0.5f,
      0.5f, -0.5f, -0.5f,
      0.5f,  0.5f, -0.5f
     };
 
-
-
     int num_vertices = sizeof(vertices)/12;
-
 
     unsigned int VBO, VAO;
     glGenVertexArrays(1, &VAO);
@@ -182,24 +286,18 @@ int main()
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    // glBufferData is used to copy user-defined data into the currently bound buffer
-
-
-    
-    
-
     // position attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
 
-
+    // set up coordinate axes to render
     unsigned int coordi_VBO, coordi_VAO;
     set_up_CoordinateAxes(coordi_VBO, coordi_VAO);
 
-
-
-
+    // set up basic cube
+    unsigned int cube_VBO, cube_VAO;
+    set_up_cube_base(cube_VBO, cube_VAO);
 
 
     // tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
@@ -213,30 +311,24 @@ int main()
     glPointSize(4.0);
     glLineWidth(2.0);
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    int count = 0;
     glm::vec4 color1 = glm::vec4(0.1f, 0.4f, 0.2f, 1.0f);
     glm::vec4 color2 = glm::vec4(0.9f, 0.6f, 0.5f, 1.0f);
     glm::vec4 color3 = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
     
 
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
 
-    //imgui---------------------------
-    // 检查版本
+    //imgui config----------------------
     IMGUI_CHECKVERSION();
-    // 上下文
     ImGui::CreateContext();
-    // 设置黑色主题
+    // set color theme
     ImGui::StyleColorsDark();
-    // 嵌入住glfw上下文中
+    // embed imgui into glfw and opengl3
     ImGui_ImplGlfw_InitForOpenGL(window, true);
-    // OpenGL版本号3.3
+    // OpenGL version 3.3
     ImGui_ImplOpenGL3_Init("#version 330");
-
     ImGuiIO& io = ImGui::GetIO();
     (void) io;
-    // 字体设置
+    // font setting
     io.Fonts->AddFontFromFileTTF("../../../resource/fonts/Cousine-Regular.ttf", 13.0f, NULL, io.Fonts->GetGlyphRangesDefault());
     io.Fonts->AddFontFromFileTTF("../../../resource/fonts/DroidSans.ttf", 13.0f, NULL, io.Fonts->GetGlyphRangesDefault());
     io.Fonts->AddFontFromFileTTF("../../../resource/fonts/Karla-Regular.ttf", 13.0f, NULL, io.Fonts->GetGlyphRangesDefault());
@@ -244,15 +336,10 @@ int main()
     io.Fonts->AddFontFromFileTTF("../../../resource/fonts/Roboto-Medium.ttf", 13.0f, NULL, io.Fonts->GetGlyphRangesDefault());
     // --------------------------------
     
-
+    // render loop
     while (!glfwWindowShouldClose(window))
     {
         
-
-
-
-
-
         // per-frame time logic
         // --------------------
         float currentFrame = static_cast<float>(glfwGetTime());
@@ -293,7 +380,6 @@ int main()
         
         ourShader.setMat4("model", model);
         
-        glCullFace(GL_BACK);
         ourShader.setVec4("color", color1);
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         glDrawArrays(GL_TRIANGLES, 0, num_vertices);
@@ -311,6 +397,12 @@ int main()
         
         renderCoordinateAxes(ourShader, coordi_VBO, coordi_VAO);
 
+        glm::mat4 cube_position = glm::mat4(1.0f);
+
+        render_cube(ourShader, cube_VBO, cube_VAO, cube_position);
+        render_cube(ourShader, cube_VBO, cube_VAO, glm::translate(cube_position, glm::vec3(1.0f, 0.0f, 0.0f)));
+
+
 
 
         std::cout<<"camera pos:"<<camera.Position[0]<<" "<<camera.Position[1]<<" "<<camera.Position[2]<<std::endl;
@@ -319,7 +411,7 @@ int main()
 
     
         // imgui---------------------------
-        // 1. ImGui渲染操作
+        // 1. ImGui render
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
@@ -348,6 +440,9 @@ int main()
     // ------------------------------------------------------------------------
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
+
+    glDeleteVertexArrays(1, &coordi_VAO);
+    glDeleteBuffers(1, &coordi_VBO);
 
     // glfw: terminate, clearing all previously allocated GLFW resources.
     // ------------------------------------------------------------------
