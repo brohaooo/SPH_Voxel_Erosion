@@ -61,6 +61,28 @@ glm::vec4 boundary_color = glm::vec4(0.2f, 0.2f, 0.f, 1.0f);
 const GLfloat x_max = 3.0f, x_min = -3.0f, y_max = 3.0f, y_min = -3.0f, z_max = 3.0f, z_min = -3.0f;
 bounding_box boundary = bounding_box(x_max, x_min, y_max, y_min, z_max, z_min);
 
+// voxel field
+int x_num = 3, y_num = 3, z_num = 3;
+voxel_field V = voxel_field(x_num, y_num, z_num);
+
+
+// set up voxel field
+void set_up_voxel_field(voxel_field& V) {
+    voxel v1;
+    v1.color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+    v1.density = 1.0f;
+    v1.exist = true;
+
+    V.set_voxel(0, 0, 0, v1);
+    V.set_voxel(0, 0, 1, v1);
+    V.set_voxel(0, 1, 0, v1);
+    V.set_voxel(1, 0, 0, v1);
+}
+	
+
+
+
+
 
 
 // set up coordinate axes, return VBO and VAO reference
@@ -167,41 +189,41 @@ void set_up_cube_base(unsigned int cube_VBO[2], unsigned int cube_VAO[2]) {
 
     GLfloat cube_edge_vertices[] = {
         // Front face
-        -0.5f, -0.5f, 0.5f,
-         0.5f, -0.5f, 0.5f,
+        -0.502f, -0.502f, 0.502f,
+         0.502f, -0.502f, 0.502f,
 
-         0.5f, -0.5f, 0.5f,
-         0.5f,  0.5f, 0.5f,
+         0.502f, -0.502f, 0.502f,
+         0.502f,  0.502f, 0.502f,
 
-         0.5f,  0.5f, 0.5f,
-         -0.5f,  0.5f, 0.5f,
+         0.502f,  0.502f, 0.502f,
+         -0.502f,  0.502f, 0.502f,
 
-         -0.5f,  0.5f, 0.5f,
-         -0.5f, -0.5f, 0.5f,
+         -0.502f,  0.502f, 0.502f,
+         -0.502f, -0.502f, 0.502f,
          // Back face
-        -0.5f, -0.5f, -0.5f,
-         0.5f, -0.5f, -0.5f,
+        -0.502f, -0.502f, -0.502f,
+         0.502f, -0.502f, -0.502f,
 
-         0.5f, -0.5f, -0.5f,
-         0.5f,  0.5f, -0.5f,
+         0.502f, -0.502f, -0.502f,
+         0.502f,  0.502f, -0.502f,
 
-         0.5f,  0.5f, -0.5f,
-         -0.5f,  0.5f, -0.5f,
+         0.502f,  0.502f, -0.502f,
+         -0.502f,  0.502f, -0.502f,
 
-         -0.5f,  0.5f, -0.5f,
-         -0.5f, -0.5f, -0.5f,
+         -0.502f,  0.502f, -0.502f,
+         -0.502f, -0.502f, -0.502f,
          // Right face
-        0.5f, -0.5f, 0.5f,
-        0.5f, -0.5f, -0.5f,
+        0.502f, -0.502f, 0.502f,
+        0.502f, -0.502f, -0.502f,
 
-        0.5f,  0.5f, -0.5f,
-        0.5f,  0.5f, 0.5f,
+        0.502f,  0.502f, -0.502f,
+        0.502f,  0.502f, 0.502f,
         // Left face
-        -0.5f, -0.5f, 0.5f,
-        -0.5f, -0.5f, -0.5f,
+        -0.502f, -0.502f, 0.502f,
+        -0.502f, -0.502f, -0.502f,
         
-        -0.5f,  0.5f, -0.5f,
-        -0.5f,  0.5f, 0.5f,
+        -0.502f,  0.502f, -0.502f,
+        -0.502f,  0.502f, 0.502f,
         
     };
 
@@ -303,7 +325,21 @@ void render_boundary(Shader& ourShader, unsigned int bound_VBO[2], unsigned int 
 }
 
 
+// render voxel field
+void render_voxel_field(voxel_field& V, Shader& ourShader, unsigned int cube_VBO[2], unsigned int cube_VAO[2]) {
 
+    for (int i = 0; i < x_num; i++) {
+		for (int j = 0; j < y_num; j++) {
+			for (int k = 0; k < z_num; k++) {
+				voxel v = V.get_voxel(i, j, k);
+				if (v.exist) {
+					glm::mat4 model = glm::scale(glm::translate(glm::mat4(1.0f), voxel_to_world(i, j, k)),glm::vec3(voxel_size_scale));
+					render_cube(ourShader, cube_VBO, cube_VAO, model);
+				}
+			}
+		}
+	}
+}
 
 
 int main()
@@ -387,6 +423,12 @@ int main()
     unsigned int bound_VBO[2], bound_VAO[2];
     set_up_boundary(bound_VBO, bound_VAO, boundary);
 
+
+    // set up voxel field
+    set_up_voxel_field(V);
+
+
+
     // --------------------------------
     
     
@@ -440,8 +482,11 @@ int main()
 
         glm::mat4 cube_position = glm::mat4(1.0f);
 
-        render_cube(ourShader, cube_VBO, cube_VAO, cube_position);
-        render_cube(ourShader, cube_VBO, cube_VAO, glm::translate(cube_position, glm::vec3(1.0f, 0.0f, 0.0f)));
+        // render_cube(ourShader, cube_VBO, cube_VAO, cube_position);
+        // render_cube(ourShader, cube_VBO, cube_VAO, glm::translate(cube_position, glm::vec3(1.0f, 0.0f, 0.0f)));
+
+        render_voxel_field(V, ourShader, cube_VBO, cube_VAO);
+
         render_boundary(ourShader, bound_VBO, bound_VAO);
 
 
