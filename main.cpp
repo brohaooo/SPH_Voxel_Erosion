@@ -306,8 +306,8 @@ void render_boundary(Shader& ourShader, unsigned int bound_VBO[2], unsigned int 
     glm::mat4 model = glm::mat4(1.0f);
     ourShader.setMat4("model", model);
 
-    glDisable(GL_CULL_FACE);
-
+    //glDisable(GL_CULL_FACE);
+    glCullFace(GL_FRONT);
     // draw boundary mesh
     glBindVertexArray(bound_VAO[0]);
     ourShader.setVec4("color", boundary_color);
@@ -319,8 +319,8 @@ void render_boundary(Shader& ourShader, unsigned int bound_VBO[2], unsigned int 
     ourShader.setVec4("color", cube_edge_color);
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glDrawArrays(GL_LINES, 0, 24);
-
-    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    //glEnable(GL_CULL_FACE);
 
 }
 
