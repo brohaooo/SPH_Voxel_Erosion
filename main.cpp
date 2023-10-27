@@ -23,7 +23,7 @@
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
 
-
+#include <physics.h>
 
 
 // input callback functions
@@ -33,8 +33,8 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
 
 // settings
-const unsigned int SCR_WIDTH = 1000;
-const unsigned int SCR_HEIGHT = 1000;
+const unsigned int SCR_WIDTH = 1080;
+const unsigned int SCR_HEIGHT = 720;
 
 // camera 
 Camera camera(glm::vec3(1.39092f, 1.55529f, 2.59475f));
@@ -54,6 +54,13 @@ glm::vec4 green = glm::vec4(0.f, 1.f, 0.f, 1.0f);
 glm::vec4 blue = glm::vec4(0.f, 0.f, 1.f, 1.0f);
 glm::vec4 cube_color = glm::vec4(0.4f, 0.4f, 1.f, 1.0f);
 glm::vec4 cube_edge_color = glm::vec4(0.8f, 0.8f, 1.f, 1.0f);
+glm::vec4 boundary_color = glm::vec4(0.2f, 0.2f, 0.f, 1.0f);
+
+
+// boundary
+const GLfloat x_max = 3.0f, x_min = -3.0f, y_max = 3.0f, y_min = -3.0f, z_max = 3.0f, z_min = -3.0f;
+bounding_box boundary = bounding_box(x_max, x_min, y_max, y_min, z_max, z_min);
+
 
 
 // set up coordinate axes, return VBO and VAO reference
@@ -217,16 +224,13 @@ void set_up_cube_base(unsigned int cube_VBO[2], unsigned int cube_VAO[2]) {
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
-
-
-
 }
 
 
 void render_cube(Shader& ourShader, unsigned int cube_VBO[2], unsigned int cube_VAO[2], glm::mat4 model = glm::mat4(1.0f)) {
     // activate selected shader
     ourShader.use();
-    glBindVertexArray(cube_VAO[0]);
+    
 
     // get VP matrix and set it together with Model matrix
     glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.5f, 100.0f);
@@ -234,18 +238,13 @@ void render_cube(Shader& ourShader, unsigned int cube_VBO[2], unsigned int cube_
     glm::mat4 view = camera.GetViewMatrix();
     ourShader.setMat4("view", view);
     ourShader.setMat4("model", model);
-
-    
-    
-    /*ourShader.setVec4("color", cube_edge_color);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    glDrawArrays(GL_TRIANGLES, 0, 36);*/
-    
+    // draw cube mesh
+    glBindVertexArray(cube_VAO[0]);
     ourShader.setVec4("color", cube_color);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glDrawArrays(GL_TRIANGLES, 0, 36);
 
-
+    // draw cube edge
     glBindVertexArray(cube_VAO[1]);
     ourShader.setVec4("color", cube_edge_color);
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -254,6 +253,54 @@ void render_cube(Shader& ourShader, unsigned int cube_VBO[2], unsigned int cube_
 
 }
 
+void set_up_boundary(unsigned int bound_VBO[2], unsigned int bound_VAO[2], bounding_box& boundary) {
+    glGenVertexArrays(2, bound_VAO);
+    glGenBuffers(2, bound_VBO);
+    glBindVertexArray(bound_VAO[0]);
+    glBindBuffer(GL_ARRAY_BUFFER, bound_VBO[0]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*boundary.face_mesh.size(), boundary.face_mesh.data(), GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    glBindVertexArray(bound_VAO[1]);
+    glBindBuffer(GL_ARRAY_BUFFER, bound_VAO[1]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * boundary.face_edge.size(), boundary.face_edge.data(), GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+
+}
+
+void render_boundary(Shader& ourShader, unsigned int bound_VBO[2], unsigned int bound_VAO[2]) {
+    // activate selected shader
+    ourShader.use();
+    
+
+    // get MVP matrix and set it
+    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.5f, 100.0f);
+    ourShader.setMat4("projection", projection);
+    glm::mat4 view = camera.GetViewMatrix();
+    ourShader.setMat4("view", view);
+    glm::mat4 model = glm::mat4(1.0f);
+    ourShader.setMat4("model", model);
+
+    glDisable(GL_CULL_FACE);
+
+    // draw boundary mesh
+    glBindVertexArray(bound_VAO[0]);
+    ourShader.setVec4("color", boundary_color);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+    
+    // draw boundary edge
+    glBindVertexArray(bound_VAO[1]);
+    ourShader.setVec4("color", cube_edge_color);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glDrawArrays(GL_LINES, 0, 24);
+
+    glEnable(GL_CULL_FACE);
+
+}
 
 
 
@@ -261,9 +308,6 @@ void render_cube(Shader& ourShader, unsigned int cube_VBO[2], unsigned int cube_
 
 int main()
 {
-    
-
-    
 
     // glfw: initialize and configure
     // ------------------------------
@@ -338,6 +382,11 @@ int main()
     unsigned int cube_VAO[2];
     set_up_cube_base(cube_VBO, cube_VAO);
 
+
+    // set up boundary
+    unsigned int bound_VBO[2], bound_VAO[2];
+    set_up_boundary(bound_VBO, bound_VAO, boundary);
+
     // --------------------------------
     
     
@@ -393,7 +442,7 @@ int main()
 
         render_cube(ourShader, cube_VBO, cube_VAO, cube_position);
         render_cube(ourShader, cube_VBO, cube_VAO, glm::translate(cube_position, glm::vec3(1.0f, 0.0f, 0.0f)));
-
+        render_boundary(ourShader, bound_VBO, bound_VAO);
 
 
 
