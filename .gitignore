@@ -400,3 +400,15 @@ FodyWeavers.xsd
 
 # cmake compile output folder
 out/
+
+# Editors
+.idea/
+compile_commands.json
+
+# CMake files
+**/CMakeFiles/
+
+# build directories
+**/*[Bb]uild*/
+
+
