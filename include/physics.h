@@ -325,18 +325,11 @@ void calculate_SPH_movement(std::vector<particle> & p, float frameTimeDiff) {
 
         }
 
-        /*if (i == 0) {
-                std::cout << i << "viscosity_force: " << viscosity_force.x << " " << viscosity_force.y << " " << viscosity_force.z << std::endl;
-                std::cout << i << "pressure_force: " << pressure_force.x << " " << pressure_force.y << " " << pressure_force.z << std::endl;
-        }*/
-
 
         viscosity_force *= particle_viscosity;
         p[i].acceleration = glm::vec3((pressure_force / p[i].pamameters[0] + viscosity_force / p[i].pamameters[0] + gravity_force));
-
         p[i].deltaCs = glm::vec3(glm::normalize(dCs));
 
-        
     }
     // for each particle, calculate the velocity and new position
     for (int i = 0; i < particle_num; i++) {
@@ -382,12 +375,7 @@ void calculate_SPH_movement(std::vector<particle> & p, float frameTimeDiff) {
         p[i].prevPos = p[i].currPos;
         p[i].currPos = new_position;
       
-
     }
-
-
-
-
 
 }
 

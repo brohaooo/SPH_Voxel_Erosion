@@ -107,10 +107,6 @@ void set_up_SPH_particles(std::vector<particle> & P) {
 		P[i] = p1;
 	}
 
-    //P[0].currPos = glm::vec3(std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN());
-    /*P[0].currPos = glm::vec3(0.0f, 0.0f, 0.0f);
-    P[1].currPos = glm::vec3(0.0f, 0.0f, 0.0f);*/
-
 }
 
 
@@ -281,7 +277,7 @@ void set_up_cube_base_rendering(unsigned int cube_VBO[2], unsigned int cube_VAO[
 
 }
 
-
+// render a single cube given transformation matrix 'model'
 void render_cube(Shader& ourShader, unsigned int cube_VBO[2], unsigned int cube_VAO[2], glm::mat4 model = glm::mat4(1.0f)) {
     // activate selected shader
     ourShader.use();
@@ -308,12 +304,14 @@ void render_cube(Shader& ourShader, unsigned int cube_VBO[2], unsigned int cube_
 
 }
 
+
+// set up particle rendering, instanced rendering
 void set_up_particle_rendering(unsigned int& sphereVBO, unsigned int& sphereVAO, unsigned int& sphereEBO, unsigned int& particle_instance_VBO) {
-    // 生成球体顶点
+    // generate sphere vertices
     std::vector<GLfloat> sphereVertices;
-    float radius = 1.0f; // 球体半径
-    int sectors = 16; // 细分级别
-    int stacks = 8; // 细分级别
+    float radius = 1.0f; // sphere radius
+    int sectors = 16; // sphere resolution 1
+    int stacks = 8; // sphere resolution 2
 
     int num = (stacks * 2) * sectors * 3;
 
@@ -332,7 +330,7 @@ void set_up_particle_rendering(unsigned int& sphereVBO, unsigned int& sphereVAO,
         }
     }
 
-    // 生成球体索引
+    //  generate sphere indices
     std::vector<GLuint> sphereIndices;
     for (int i = 0; i < stacks; ++i) {
         for (int j = 0; j < sectors; ++j) {
@@ -350,7 +348,7 @@ void set_up_particle_rendering(unsigned int& sphereVBO, unsigned int& sphereVAO,
     }
 
 
-    // 创建并绑定VBO和VAO
+    // create and bind VBO and VAO
     glGenVertexArrays(1, &sphereVAO);
     glGenBuffers(1, &sphereVBO);
     glGenBuffers(1, &sphereEBO);
@@ -364,27 +362,28 @@ void set_up_particle_rendering(unsigned int& sphereVBO, unsigned int& sphereVAO,
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sphereEBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * sphereIndices.size(), sphereIndices.data(), GL_STATIC_DRAW);
 
-    // 配置顶点属性指针
+    // define vertex attributes pointer
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void*)0);
     glEnableVertexAttribArray(0);
 
 
     glBindBuffer(GL_ARRAY_BUFFER, particle_instance_VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 3 * PARTICLE_NUM, NULL, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 3 * PARTICLE_NUM, NULL, GL_DYNAMIC_DRAW);// dynamic draw, update every frame
     glVertexAttribDivisor(1, 1);
 
-    // 设置模型矩阵属性指针
+    // set model matrix attribute pointer
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void*)0);
     glEnableVertexAttribArray(1);
 
     
 }
+
+// set up sphere rendering, just one sphere, not instanced
 void set_up_sphere_rendering(unsigned int & sphereVBO, unsigned int & sphereVAO, unsigned int & sphereEBO) {
-    // 生成球体顶点
     std::vector<GLfloat> sphereVertices;
-    float radius = 1.0f; // 球体半径
-    int sectors = 16; // 细分级别
-    int stacks = 8; // 细分级别
+    float radius = 1.0f;
+    int sectors = 16; 
+    int stacks = 8; 
 
     int num = (stacks * 2) * sectors * 3;
 
@@ -402,8 +401,6 @@ void set_up_sphere_rendering(unsigned int & sphereVBO, unsigned int & sphereVAO,
             sphereVertices.push_back(z);
         }
     }
-
-    // 生成球体索引
     std::vector<GLuint> sphereIndices;
     for (int i = 0; i < stacks; ++i) {
         for (int j = 0; j < sectors; ++j) {
@@ -419,14 +416,6 @@ void set_up_sphere_rendering(unsigned int & sphereVBO, unsigned int & sphereVAO,
             sphereIndices.push_back(bottom + 1);
         }
     }
-
-    /*for (auto num : sphereVertices) {
-		std::cout << num << " ";
-	}*/
-
-
-
-    // 创建并绑定VBO和VAO
     glGenVertexArrays(1, &sphereVAO);
     glGenBuffers(1, &sphereVBO);
     glGenBuffers(1, &sphereEBO);
@@ -438,12 +427,11 @@ void set_up_sphere_rendering(unsigned int & sphereVBO, unsigned int & sphereVAO,
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sphereEBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * sphereIndices.size(), sphereIndices.data(), GL_STATIC_DRAW);
 
-    // 配置顶点属性指针
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void*)0);
     glEnableVertexAttribArray(0);
-
 }
 
+// render a single sphere given transformation matrix 'model', didn't use in this project
 void render_sphere(Shader& ourShader, unsigned int& sphere_VBO, unsigned int& sphere_VAO, unsigned int& sphereEBO, glm::mat4 model = glm::mat4(1.0f)) {
     // activate selected shader
     ourShader.use();
@@ -463,7 +451,7 @@ void render_sphere(Shader& ourShader, unsigned int& sphere_VBO, unsigned int& sp
     
 }
 
-
+// render a single sphere given transformation matrix 'model', instanced rendering, would be more efficient
 void render_sphere_instanced(Shader& ourShader, unsigned int& sphere_VAO, GLsizei intance_num, unsigned int& particle_instance_VBO, GLfloat* particle_vertices) {
     // activate selected shader
     ourShader.use();
@@ -476,9 +464,9 @@ void render_sphere_instanced(Shader& ourShader, unsigned int& sphere_VAO, GLsize
     ourShader.setMat4("model", model);
 
     glBindVertexArray(sphere_VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, particle_instance_VBO);
 
-    //glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 3 * intance_num, particle_vertices, GL_STATIC_DRAW);
+    // update particle position
+    glBindBuffer(GL_ARRAY_BUFFER, particle_instance_VBO);
     glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(GLfloat) * 3 * intance_num, particle_vertices);
 
     ourShader.setVec4("color", particle_color);
@@ -789,7 +777,6 @@ int main()
 
 
         // imgui---------------------------
-        // 1. ImGui render
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
@@ -802,7 +789,6 @@ int main()
             ImGui::Text("CAM FOV: %.3f", camera.Zoom);
         }
         ImGui::End();
-        // 3. 渲染
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         // --------------------------------
