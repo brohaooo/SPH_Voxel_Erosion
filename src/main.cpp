@@ -643,8 +643,8 @@ int main()
 
     // build and compile our shader program
     // ------------------------------------
-    Shader ourShader("../../shader/shader.vs", "../../shader/shader.fs");
-    Shader instance_shader("../../shader/shader_instance.vs", "../../shader/shader_instance.fs");
+    Shader ourShader("../../shader/shader.vs", "../../shader/shader.fs");// default shader, only render color
+    Shader instance_shader("../../shader/shader_instance.vs", "../../shader/shader_instance.fs");// instance shader, support the instance position
     
 
     
