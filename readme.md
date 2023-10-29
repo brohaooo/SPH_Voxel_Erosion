@@ -21,3 +21,5 @@ cmake -S . -Bbuild-ninja -GNinja -DCMAKE_BUILD_TYPE=<Release/Debug>
 cmake --build build-ninja
 
 ```
+
+Or you can just open MSVC and it will help you do all the thing
