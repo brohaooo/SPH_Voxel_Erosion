@@ -74,9 +74,10 @@ voxel_field V = voxel_field(x_num, y_num, z_num);
 std::vector<particle> particles(PARTICLE_NUM);
 
 // particle simulation parameters
-bool time_stop = false;
+bool time_stop = true;
 bool regenerate = false;
-
+// tracking space key press
+bool isSpaceKeyPressed = false;
 
 // set up voxel field
 void set_up_voxel_field(voxel_field& V) {
@@ -851,9 +852,17 @@ void processInput(GLFWwindow *window)
         camera.ProcessKeyboard(UP, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
         camera.ProcessKeyboard(DOWN, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS){
-        time_stop = !time_stop;
+
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+        if (!isSpaceKeyPressed) {
+            time_stop = !time_stop;
+        }
+        isSpaceKeyPressed = true;
     }
+    else {
+        isSpaceKeyPressed = false;
+    }
+
     if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
         regenerate = true;
     }
