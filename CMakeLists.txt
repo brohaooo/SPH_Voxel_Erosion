@@ -4,7 +4,7 @@ set(CMAKE_CXX_STANDARD 11)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(CMAKE_TOOLCHAIN_FILE ./vcpkg/scripts/buildsystems/vcpkg.cmake)
+set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake)
 
 project(CGS_erosion VERSION 0.1)
 
@@ -81,9 +81,9 @@ link_directories(${CMAKE_CURRENT_SOURCE_DIR}/3rd_party/FastNoise2/lib)
 
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS src/*.cpp src/*.h)
 
-list(APPEND SOURCES
-    3rd_party/glad/src/glad.c  # glad files
-)
+# list(APPEND SOURCES
+#     3rd_party/glad/src/glad.c  # glad files
+# )
 
 add_executable(${PROJECT_NAME} ${SOURCES} ${IMGUI_FILES})
 
