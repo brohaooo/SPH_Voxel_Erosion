@@ -38,7 +38,7 @@ const unsigned int SCR_WIDTH = 1080;
 const unsigned int SCR_HEIGHT = 720;
 
 // camera 
-Camera camera(glm::vec3(1.39092f, 1.55529f, 2.59475f));
+extern Camera camera(glm::vec3(5.5f, 4.5f, 5.5f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -65,8 +65,9 @@ extern const GLfloat x_max, x_min, y_max, y_min, z_max, z_min;
 bounding_box boundary = bounding_box(x_max, x_min, y_max, y_min, z_max, z_min);
 
 // voxel field
-int x_num = 3, y_num = 3, z_num = 3;
-voxel_field V = voxel_field(x_num, y_num, z_num);
+extern int voxel_x_num = 32, voxel_y_num = 32, voxel_z_num = 32;
+int x_num = voxel_x_num, y_num = voxel_y_num, z_num = voxel_z_num;
+voxel_field V = voxel_field(voxel_x_num, voxel_y_num, voxel_z_num);
 
 #define PARTICLE_NUM 200
 

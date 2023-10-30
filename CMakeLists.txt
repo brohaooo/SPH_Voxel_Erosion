@@ -4,6 +4,8 @@ set(CMAKE_CXX_STANDARD 11)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# set(CMAKE_TOOLCHAIN_FILE C:/src/vcpkg/scripts/buildsystems/vcpkg.cmake)
+
 project(CGS_erosion VERSION 0.1)
 
 ### CMake Options
@@ -37,6 +39,19 @@ add_subdirectory(./3rd_party/glfw-3.3.8)
 # GLM
 add_compile_definitions(GLM_LANG_STL11_FORCED) # fix GLM compile error in clang++
 
+set(CMAKE_PREFIX_PATH ./3rd_party/FastNoise2 ${CMAKE_PREFIX_PATH})
+find_package(FastNoise2 0.10.0 CONFIG REQUIRED)
+
+set(GMP_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
+set(GMP_LIBRARIES "${CMAKE_CURRENT_SOURCE_DIR}/lib/gmp.lib")
+set(MPFR_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
+set(MPFR_LIBRARIES "${CMAKE_CURRENT_SOURCE_DIR}/lib/mpfr.lib")
+
+set(Boost_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
+
+list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_SOURCE_DIR}/share/cgal")
+find_package(CGAL REQUIRED)
+
 set(IMGUI_FILES
 ./3rd_party/imgui/imgui.cpp
 ./3rd_party/imgui/imgui_draw.cpp
@@ -51,8 +66,10 @@ include_directories(./
                     ./3rd_party
                     ./3rd_party/glad/include
                     ./3rd_party/imgui
-                    ./3rd_party/imgui/backends)
+                    ./3rd_party/imgui/backends
+                    ./3rd_party/FastNoise2/include)
 
+link_directories(${CMAKE_CURRENT_SOURCE_DIR}/3rd_party/FastNoise2/lib)
 
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS src/*.cpp src/*.h)
 
@@ -64,7 +81,7 @@ add_executable(${PROJECT_NAME} ${SOURCES} ${IMGUI_FILES})
 
 target_include_directories(${PROJECT_NAME} PRIVATE include)
 
-target_link_libraries(${PROJECT_NAME} PUBLIC glfw)
+target_link_libraries(${PROJECT_NAME} PUBLIC glfw FastNoise CGAL::CGAL)
 
 # set output directories
 set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE   ${CMAKE_CURRENT_SOURCE_DIR}/bin/Release)
@@ -100,6 +117,15 @@ add_custom_command(
     COMMAND ${CMAKE_COMMAND} -E echo
     "copying ${CMAKE_CURRENT_SOURCE_DIR}/shader to ${OUTPUT_DIR}/shader"
     COMMENT "Copying shaders to build directory")
+
+add_custom_command(
+    TARGET ${PROJECT_NAME}
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rd_party/FastNoise2/bin/FastNoise.dll
+    ${CMAKE_CURRENT_SOURCE_DIR}/bin/Debug
+    COMMENT "Copying FastNoise.dll to the executable directory"
+)
 
 
 # Add support for clangd
