@@ -1,9 +1,6 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image/stb_image.h>
-
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -19,9 +16,9 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/hash.hpp>
 
-#include "imgui/imgui.h"
-#include "imgui/imgui_impl_glfw.h"
-#include "imgui/imgui_impl_opengl3.h"
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
 
 #include <physics.h>
 
@@ -31,20 +28,20 @@ const bool _vSync = true; // Enable vsync
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-void processInput(GLFWwindow *window);
+void processInput(GLFWwindow* window);
 
 // settings
 const unsigned int SCR_WIDTH = 1080;
 const unsigned int SCR_HEIGHT = 720;
 
-// camera 
+// camera
 extern Camera camera(glm::vec3(5.5f, 4.5f, 5.5f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
 
 // timing
-float deltaTime = 0.0f;	// time between current frame and last frame
+float deltaTime = 0.0f; // time between current frame and last frame
 float lastFrame = 0.0f;
 float LastTime = 0.0f;
 
@@ -57,8 +54,6 @@ glm::vec4 cube_color = glm::vec4(0.4f, 0.4f, 1.f, 1.0f);
 glm::vec4 cube_edge_color = glm::vec4(0.8f, 0.8f, 1.f, 1.0f);
 glm::vec4 boundary_color = glm::vec4(0.2f, 0.2f, 0.f, 1.0f);
 glm::vec4 particle_color = glm::vec4(0.8f, 0.9f, 0.f, 1.0f);
-
-
 
 // boundary, see details in physics.h
 extern const GLfloat x_max, x_min, y_max, y_min, z_max, z_min;
@@ -81,7 +76,8 @@ bool regenerate = false;
 bool isSpaceKeyPressed = false;
 
 // set up voxel field
-void set_up_voxel_field(voxel_field& V) {
+void set_up_voxel_field(voxel_field& V)
+{
     voxel v1;
     v1.color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
     v1.density = 1.0f;
@@ -92,39 +88,45 @@ void set_up_voxel_field(voxel_field& V) {
     V.set_voxel(0, 1, 0, v1);
     V.set_voxel(1, 0, 0, v1);
 }
-	
+
 // set up particle system
-void set_up_SPH_particles(std::vector<particle> & P) {
+void set_up_SPH_particles(std::vector<particle>& P)
+{
     particle p1;
-	// p1.currPos = generateRandomVec3();
-	p1.prevPos = glm::vec3(0.0f, 0.0f, 0.0f);
-	p1.velocity = glm::vec3(0.0f, 0.0f, 0.0f);
-	p1.acceleration = glm::vec3(0.0f, 0.0f, 0.0f);
-	p1.pamameters = glm::vec3(0.0f, 0.0f, 0.0f);
-	p1.deltaCs = glm::vec3(0.0f, 0.0f, 0.0f);
-	
+    // p1.currPos = generateRandomVec3();
+    p1.prevPos = glm::vec3(0.0f, 0.0f, 0.0f);
+    p1.velocity = glm::vec3(0.0f, 0.0f, 0.0f);
+    p1.acceleration = glm::vec3(0.0f, 0.0f, 0.0f);
+    p1.pamameters = glm::vec3(0.0f, 0.0f, 0.0f);
+    p1.deltaCs = glm::vec3(0.0f, 0.0f, 0.0f);
+
     for (int i = 0; i < PARTICLE_NUM; i++) {
         p1.currPos = generateRandomVec3();
-		P[i] = p1;
-	}
-
+        P[i] = p1;
+    }
 }
 
-
-
-
-
-
 // set up coordinate axes, return VBO and VAO reference
-void set_up_CoordinateAxes(unsigned int & coordi_VBO, unsigned int & coordi_VAO) {
+void set_up_CoordinateAxes(unsigned int& coordi_VBO, unsigned int& coordi_VAO)
+{
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // three lines: x, y, z
     GLfloat xyz_axis[] = {
-     0.f, 0.f, 0.f,
-     1.f, 0.f, 0.f,
-     0.f, 0.f, 0.f,
-     0.f, 1.f, 0.f,
-     0.f, 0.f, 1.f,
+        0.f,
+        0.f,
+        0.f,
+        1.f,
+        0.f,
+        0.f,
+        0.f,
+        0.f,
+        0.f,
+        0.f,
+        1.f,
+        0.f,
+        0.f,
+        0.f,
+        1.f,
     };
     glGenVertexArrays(1, &coordi_VAO);
     glGenBuffers(1, &coordi_VBO);
@@ -133,12 +135,12 @@ void set_up_CoordinateAxes(unsigned int & coordi_VBO, unsigned int & coordi_VAO)
     glBindBuffer(GL_ARRAY_BUFFER, coordi_VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(xyz_axis), xyz_axis, GL_STATIC_DRAW);
 
-    
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 }
 
-void renderCoordinateAxes(Shader & ourShader, unsigned int & coordi_VBO, unsigned int & coordi_VAO) {
+void renderCoordinateAxes(Shader& ourShader, unsigned int& coordi_VBO, unsigned int& coordi_VAO)
+{
     // activate selected shader
     ourShader.use();
     glBindVertexArray(coordi_VAO);
@@ -148,9 +150,8 @@ void renderCoordinateAxes(Shader & ourShader, unsigned int & coordi_VBO, unsigne
     ourShader.setMat4("projection", projection);
     glm::mat4 view = camera.GetViewMatrix();
     ourShader.setMat4("view", view);
-    glm::mat4 model = glm::mat4(1.0f); 
+    glm::mat4 model = glm::mat4(1.0f);
     ourShader.setMat4("model", model);
-
 
     // draw xyz axis
     ourShader.setVec4("color", red);
@@ -161,107 +162,151 @@ void renderCoordinateAxes(Shader & ourShader, unsigned int & coordi_VBO, unsigne
     glDrawArrays(GL_LINES, 4, 2);
 }
 
-
-
 // set up a basic cube with VBO and VAO
-void set_up_cube_base_rendering(unsigned int cube_VBO[2], unsigned int cube_VAO[2]) {
+void set_up_cube_base_rendering(unsigned int cube_VBO[2], unsigned int cube_VAO[2])
+{
     // a cube has six faces, each face has two triangles, each triangle has three vertices
     // so here's 6*2*3=36 vertices
     GLfloat cube_triangle_vertices[] = {
-     // Front face
-    -0.5f, -0.5f, 0.5f,
-     0.5f, -0.5f, 0.5f,
-     0.5f,  0.5f, 0.5f,
-    -0.5f, -0.5f, 0.5f,
-     0.5f,  0.5f, 0.5f,
-    -0.5f,  0.5f, 0.5f,
+        // Front face
+        -0.5f, -0.5f, 0.5f,
+        0.5f, -0.5f, 0.5f,
+        0.5f, 0.5f, 0.5f,
+        -0.5f, -0.5f, 0.5f,
+        0.5f, 0.5f, 0.5f,
+        -0.5f, 0.5f, 0.5f,
 
-    // Back face
-    -0.5f, -0.5f, -0.5f,
-     0.5f,  0.5f, -0.5f,
-     0.5f, -0.5f, -0.5f,
-     0.5f,  0.5f, -0.5f,
-    -0.5f, -0.5f, -0.5f,
-    -0.5f,  0.5f, -0.5f,
+        // Back face
+        -0.5f, -0.5f, -0.5f,
+        0.5f, 0.5f, -0.5f,
+        0.5f, -0.5f, -0.5f,
+        0.5f, 0.5f, -0.5f,
+        -0.5f, -0.5f, -0.5f,
+        -0.5f, 0.5f, -0.5f,
 
-    // Right face
-     0.5f, -0.5f, 0.5f,
-     0.5f, -0.5f, -0.5f,
-     0.5f,  0.5f, -0.5f,
-     0.5f, -0.5f, 0.5f,
-     0.5f,  0.5f, -0.5f,
-     0.5f,  0.5f, 0.5f,
+        // Right face
+        0.5f, -0.5f, 0.5f,
+        0.5f, -0.5f, -0.5f,
+        0.5f, 0.5f, -0.5f,
+        0.5f, -0.5f, 0.5f,
+        0.5f, 0.5f, -0.5f,
+        0.5f, 0.5f, 0.5f,
 
-     // Left face
-     -0.5f, -0.5f, -0.5f,
-     -0.5f, -0.5f, 0.5f,
-     -0.5f, 0.5f, -0.5f,
-     -0.5f, 0.5f, -0.5f,
-     -0.5f, -0.5f, 0.5f,
-     -0.5f, 0.5f, 0.5f,
+        // Left face
+        -0.5f, -0.5f, -0.5f,
+        -0.5f, -0.5f, 0.5f,
+        -0.5f, 0.5f, -0.5f,
+        -0.5f, 0.5f, -0.5f,
+        -0.5f, -0.5f, 0.5f,
+        -0.5f, 0.5f, 0.5f,
 
-     // Top face
-     -0.5f, 0.5f, 0.5f,
-      0.5f, 0.5f, 0.5f,
-      0.5f, 0.5f, -0.5f,
-     -0.5f, 0.5f, 0.5f,
-      0.5f, 0.5f, -0.5f,
-     -0.5f, 0.5f, -0.5f,
+        // Top face
+        -0.5f, 0.5f, 0.5f,
+        0.5f, 0.5f, 0.5f,
+        0.5f, 0.5f, -0.5f,
+        -0.5f, 0.5f, 0.5f,
+        0.5f, 0.5f, -0.5f,
+        -0.5f, 0.5f, -0.5f,
 
-     // Bottom face
-     0.5f, -0.5f, 0.5f,
-     -0.5f, -0.5f, 0.5f,
-     0.5f, -0.5f, -0.5f,
-     0.5f, -0.5f, -0.5f,
-     -0.5f, -0.5f, 0.5f,
-     -0.5f, -0.5f, -0.5f
+        // Bottom face
+        0.5f, -0.5f, 0.5f,
+        -0.5f, -0.5f, 0.5f,
+        0.5f, -0.5f, -0.5f,
+        0.5f, -0.5f, -0.5f,
+        -0.5f, -0.5f, 0.5f,
+        -0.5f, -0.5f, -0.5f
     };
 
     GLfloat cube_edge_vertices[] = {
         // Front face
-        -0.502f, -0.502f, 0.502f,
-         0.502f, -0.502f, 0.502f,
+        -0.502f,
+        -0.502f,
+        0.502f,
+        0.502f,
+        -0.502f,
+        0.502f,
 
-         0.502f, -0.502f, 0.502f,
-         0.502f,  0.502f, 0.502f,
+        0.502f,
+        -0.502f,
+        0.502f,
+        0.502f,
+        0.502f,
+        0.502f,
 
-         0.502f,  0.502f, 0.502f,
-         -0.502f,  0.502f, 0.502f,
+        0.502f,
+        0.502f,
+        0.502f,
+        -0.502f,
+        0.502f,
+        0.502f,
 
-         -0.502f,  0.502f, 0.502f,
-         -0.502f, -0.502f, 0.502f,
-         // Back face
-        -0.502f, -0.502f, -0.502f,
-         0.502f, -0.502f, -0.502f,
+        -0.502f,
+        0.502f,
+        0.502f,
+        -0.502f,
+        -0.502f,
+        0.502f,
+        // Back face
+        -0.502f,
+        -0.502f,
+        -0.502f,
+        0.502f,
+        -0.502f,
+        -0.502f,
 
-         0.502f, -0.502f, -0.502f,
-         0.502f,  0.502f, -0.502f,
+        0.502f,
+        -0.502f,
+        -0.502f,
+        0.502f,
+        0.502f,
+        -0.502f,
 
-         0.502f,  0.502f, -0.502f,
-         -0.502f,  0.502f, -0.502f,
+        0.502f,
+        0.502f,
+        -0.502f,
+        -0.502f,
+        0.502f,
+        -0.502f,
 
-         -0.502f,  0.502f, -0.502f,
-         -0.502f, -0.502f, -0.502f,
-         // Right face
-        0.502f, -0.502f, 0.502f,
-        0.502f, -0.502f, -0.502f,
+        -0.502f,
+        0.502f,
+        -0.502f,
+        -0.502f,
+        -0.502f,
+        -0.502f,
+        // Right face
+        0.502f,
+        -0.502f,
+        0.502f,
+        0.502f,
+        -0.502f,
+        -0.502f,
 
-        0.502f,  0.502f, -0.502f,
-        0.502f,  0.502f, 0.502f,
+        0.502f,
+        0.502f,
+        -0.502f,
+        0.502f,
+        0.502f,
+        0.502f,
         // Left face
-        -0.502f, -0.502f, 0.502f,
-        -0.502f, -0.502f, -0.502f,
-        
-        -0.502f,  0.502f, -0.502f,
-        -0.502f,  0.502f, 0.502f,
-        
+        -0.502f,
+        -0.502f,
+        0.502f,
+        -0.502f,
+        -0.502f,
+        -0.502f,
+
+        -0.502f,
+        0.502f,
+        -0.502f,
+        -0.502f,
+        0.502f,
+        0.502f,
+
     };
-
-
 
     glGenVertexArrays(2, cube_VAO);
     glGenBuffers(2, cube_VBO);
-
 
     glBindVertexArray(cube_VAO[0]);
     glBindBuffer(GL_ARRAY_BUFFER, cube_VBO[0]);
@@ -269,20 +314,18 @@ void set_up_cube_base_rendering(unsigned int cube_VBO[2], unsigned int cube_VAO[
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
-
     glBindVertexArray(cube_VAO[1]);
     glBindBuffer(GL_ARRAY_BUFFER, cube_VBO[1]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(cube_edge_vertices), cube_edge_vertices, GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-
 }
 
 // render a single cube given transformation matrix 'model'
-void render_cube(Shader& ourShader, unsigned int cube_VBO[2], unsigned int cube_VAO[2], glm::mat4 model = glm::mat4(1.0f)) {
+void render_cube(Shader& ourShader, unsigned int cube_VBO[2], unsigned int cube_VAO[2], glm::mat4 model = glm::mat4(1.0f))
+{
     // activate selected shader
     ourShader.use();
-    
 
     // get VP matrix and set it together with Model matrix
     glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.5f, 100.0f);
@@ -301,13 +344,11 @@ void render_cube(Shader& ourShader, unsigned int cube_VBO[2], unsigned int cube_
     ourShader.setVec4("color", cube_edge_color);
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glDrawArrays(GL_LINES, 0, 24);
-    
-
 }
 
-
 // set up particle rendering, instanced rendering
-void set_up_particle_rendering(unsigned int& sphereVBO, unsigned int& sphereVAO, unsigned int& sphereEBO, unsigned int& particle_instance_VBO) {
+void set_up_particle_rendering(unsigned int& sphereVBO, unsigned int& sphereVAO, unsigned int& sphereEBO, unsigned int& particle_instance_VBO)
+{
     // generate sphere vertices
     std::vector<GLfloat> sphereVertices;
     float radius = 1.0f; // sphere radius
@@ -348,7 +389,6 @@ void set_up_particle_rendering(unsigned int& sphereVBO, unsigned int& sphereVAO,
         }
     }
 
-
     // create and bind VBO and VAO
     glGenVertexArrays(1, &sphereVAO);
     glGenBuffers(1, &sphereVBO);
@@ -367,24 +407,22 @@ void set_up_particle_rendering(unsigned int& sphereVBO, unsigned int& sphereVAO,
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void*)0);
     glEnableVertexAttribArray(0);
 
-
     glBindBuffer(GL_ARRAY_BUFFER, particle_instance_VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 3 * PARTICLE_NUM, NULL, GL_DYNAMIC_DRAW);// dynamic draw, update every frame
+    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 3 * PARTICLE_NUM, NULL, GL_DYNAMIC_DRAW); // dynamic draw, update every frame
     glVertexAttribDivisor(1, 1);
 
     // set model matrix attribute pointer
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void*)0);
     glEnableVertexAttribArray(1);
-
-    
 }
 
 // set up sphere rendering, just one sphere, not instanced
-void set_up_sphere_rendering(unsigned int & sphereVBO, unsigned int & sphereVAO, unsigned int & sphereEBO) {
+void set_up_sphere_rendering(unsigned int& sphereVBO, unsigned int& sphereVAO, unsigned int& sphereEBO)
+{
     std::vector<GLfloat> sphereVertices;
     float radius = 1.0f;
-    int sectors = 16; 
-    int stacks = 8; 
+    int sectors = 16;
+    int stacks = 8;
 
     int num = (stacks * 2) * sectors * 3;
 
@@ -412,7 +450,7 @@ void set_up_sphere_rendering(unsigned int & sphereVBO, unsigned int & sphereVAO,
             sphereIndices.push_back(top + 1);
             sphereIndices.push_back(bottom);
 
-            sphereIndices.push_back(bottom);            
+            sphereIndices.push_back(bottom);
             sphereIndices.push_back(top + 1);
             sphereIndices.push_back(bottom + 1);
         }
@@ -433,7 +471,8 @@ void set_up_sphere_rendering(unsigned int & sphereVBO, unsigned int & sphereVAO,
 }
 
 // render a single sphere given transformation matrix 'model', didn't use in this project
-void render_sphere(Shader& ourShader, unsigned int& sphere_VBO, unsigned int& sphere_VAO, unsigned int& sphereEBO, glm::mat4 model = glm::mat4(1.0f)) {
+void render_sphere(Shader& ourShader, unsigned int& sphere_VBO, unsigned int& sphere_VAO, unsigned int& sphereEBO, glm::mat4 model = glm::mat4(1.0f))
+{
     // activate selected shader
     ourShader.use();
     glBindVertexArray(sphere_VAO);
@@ -449,11 +488,11 @@ void render_sphere(Shader& ourShader, unsigned int& sphere_VBO, unsigned int& sp
     ourShader.setVec4("color", particle_color);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glDrawElements(GL_TRIANGLES, 768, GL_UNSIGNED_INT, 0);
-    
 }
 
 // render a single sphere given transformation matrix 'model', instanced rendering, would be more efficient
-void render_sphere_instanced(Shader& ourShader, unsigned int& sphere_VAO, GLsizei intance_num, unsigned int& particle_instance_VBO, GLfloat* particle_vertices) {
+void render_sphere_instanced(Shader& ourShader, unsigned int& sphere_VAO, GLsizei intance_num, unsigned int& particle_instance_VBO, GLfloat* particle_vertices)
+{
     // activate selected shader
     ourShader.use();
     glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.5f, 100.0f);
@@ -478,19 +517,18 @@ void render_sphere_instanced(Shader& ourShader, unsigned int& sphere_VAO, GLsize
     model = glm::scale(model, glm::vec3(1.1));
     ourShader.setMat4("model", model);
     ourShader.setVec4("color", black);
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINES);
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINES);
     glDrawElementsInstanced(GL_TRIANGLES, 768, GL_UNSIGNED_INT, 0, intance_num);
     glCullFace(GL_BACK);
 }
 
-
-
-void set_up_boundary_rendering(unsigned int bound_VBO[2], unsigned int bound_VAO[2], bounding_box& boundary) {
+void set_up_boundary_rendering(unsigned int bound_VBO[2], unsigned int bound_VAO[2], bounding_box& boundary)
+{
     glGenVertexArrays(2, bound_VAO);
     glGenBuffers(2, bound_VBO);
     glBindVertexArray(bound_VAO[0]);
     glBindBuffer(GL_ARRAY_BUFFER, bound_VBO[0]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*boundary.face_mesh.size(), boundary.face_mesh.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * boundary.face_mesh.size(), boundary.face_mesh.data(), GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
@@ -499,14 +537,12 @@ void set_up_boundary_rendering(unsigned int bound_VBO[2], unsigned int bound_VAO
     glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * boundary.face_edge.size(), boundary.face_edge.data(), GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-
-
 }
 
-void render_boundary(Shader& ourShader, unsigned int bound_VBO[2], unsigned int bound_VAO[2]) {
+void render_boundary(Shader& ourShader, unsigned int bound_VBO[2], unsigned int bound_VAO[2])
+{
     // activate selected shader
     ourShader.use();
-    
 
     // get MVP matrix and set it
     glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.5f, 100.0f);
@@ -516,67 +552,64 @@ void render_boundary(Shader& ourShader, unsigned int bound_VBO[2], unsigned int 
     glm::mat4 model = glm::mat4(1.0f);
     ourShader.setMat4("model", model);
 
-    //glDisable(GL_CULL_FACE);
+    // glDisable(GL_CULL_FACE);
     glCullFace(GL_FRONT);
     // draw boundary mesh
     glBindVertexArray(bound_VAO[0]);
     ourShader.setVec4("color", boundary_color);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glDrawArrays(GL_TRIANGLES, 0, 36);
-    
+
     // draw boundary edge
     glBindVertexArray(bound_VAO[1]);
     ourShader.setVec4("color", cube_edge_color);
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glDrawArrays(GL_LINES, 0, 24);
     glCullFace(GL_BACK);
-    //glEnable(GL_CULL_FACE);
-
+    // glEnable(GL_CULL_FACE);
 }
 
-
 // render particles
-void render_SPH_particles_x(std::vector<particle> & particles, Shader& ourShader, unsigned int & sphere_VBO, unsigned int & sphere_VAO, unsigned int& sphere_EBO) {
-    GLfloat * particle_vertices = new GLfloat[particles.size() * 3];
-    for(int i = 0; i < particles.size(); i++) {
-		const particle p = particles[i];
-		glm::mat4 model = glm::scale(glm::translate(glm::mat4(1.0f), p.currPos), glm::vec3(0.18));
+void render_SPH_particles_x(std::vector<particle>& particles, Shader& ourShader, unsigned int& sphere_VBO, unsigned int& sphere_VAO, unsigned int& sphere_EBO)
+{
+    GLfloat* particle_vertices = new GLfloat[particles.size() * 3];
+    for (int i = 0; i < particles.size(); i++) {
+        const particle p = particles[i];
+        glm::mat4 model = glm::scale(glm::translate(glm::mat4(1.0f), p.currPos), glm::vec3(0.18));
 
         render_sphere(ourShader, sphere_VBO, sphere_VAO, sphere_EBO, model);
-	}
-
+    }
 }
 
 // render particles
-void render_SPH_particles(std::vector<particle>& particles, Shader& ourShader, unsigned int& sphere_VBO, unsigned int& sphere_VAO, unsigned int& sphere_EBO, unsigned int& particle_instance_VBO) {
+void render_SPH_particles(std::vector<particle>& particles, Shader& ourShader, unsigned int& sphere_VBO, unsigned int& sphere_VAO, unsigned int& sphere_EBO, unsigned int& particle_instance_VBO)
+{
     GLfloat* particle_vertices = new GLfloat[particles.size() * 3];
     for (int i = 0; i < particles.size(); i++) {
         const particle p = particles[i];
         particle_vertices[i * 3] = p.currPos[0];
         particle_vertices[i * 3 + 1] = p.currPos[1];
         particle_vertices[i * 3 + 2] = p.currPos[2];
-
     }
-    render_sphere_instanced(ourShader, sphere_VAO, particles.size(),particle_instance_VBO,particle_vertices);
+    render_sphere_instanced(ourShader, sphere_VAO, particles.size(), particle_instance_VBO, particle_vertices);
 }
-
 
 // render voxel field
-void render_voxel_field(voxel_field& V, Shader& ourShader, unsigned int cube_VBO[2], unsigned int cube_VAO[2]) {
+void render_voxel_field(voxel_field& V, Shader& ourShader, unsigned int cube_VBO[2], unsigned int cube_VAO[2])
+{
 
     for (int i = 0; i < x_num; i++) {
-		for (int j = 0; j < y_num; j++) {
-			for (int k = 0; k < z_num; k++) {
-				voxel v = V.get_voxel(i, j, k);
-				if (v.exist) {
-					glm::mat4 model = glm::scale(glm::translate(glm::mat4(1.0f), voxel_to_world(i, j, k)),glm::vec3(voxel_size_scale));
+        for (int j = 0; j < y_num; j++) {
+            for (int k = 0; k < z_num; k++) {
+                voxel v = V.get_voxel(i, j, k);
+                if (v.exist) {
+                    glm::mat4 model = glm::scale(glm::translate(glm::mat4(1.0f), voxel_to_world(i, j, k)), glm::vec3(voxel_size_scale));
                     render_cube(ourShader, cube_VBO, cube_VAO, model);
-				}
-			}
-		}
-	}
+                }
+            }
+        }
+    }
 }
-
 
 int main()
 {
@@ -588,8 +621,7 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    //glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE); // Enable double buffering
-
+    // glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE); // Enable double buffering
 
 #ifdef __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
@@ -598,8 +630,7 @@ int main()
     // glfw window creation
     // --------------------
     GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "SPH_Voxel_Erosion", NULL, NULL);
-    if (window == NULL)
-    {
+    if (window == NULL) {
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
         return -1;
@@ -620,12 +651,10 @@ int main()
 
     // glad: load all OpenGL function pointers
     // ---------------------------------------
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-    {
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
-
 
     // configure global opengl state
     // -----------------------------
@@ -638,17 +667,10 @@ int main()
     camera.MovementSpeed = 1.0f;
     camera.Front = glm::vec3(-0.373257, -0.393942, -0.826684);
 
-
-
-
-
     // build and compile our shader program
     // ------------------------------------
     Shader ourShader("shader/shader.vs", "shader/shader.fs");
     Shader instance_shader("shader/shader_instance.vs", "shader/shader_instance.fs");
-    
-
-    
 
     // scene building----------------------
 
@@ -661,11 +683,9 @@ int main()
     unsigned int cube_VAO[2];
     set_up_cube_base_rendering(cube_VBO, cube_VAO);
 
-
     // set up boundary
     unsigned int bound_VBO[2], bound_VAO[2];
     set_up_boundary_rendering(bound_VBO, bound_VAO, boundary);
-
 
     // set up voxel field
     set_up_voxel_field(V);
@@ -674,15 +694,12 @@ int main()
     set_up_SPH_particles(particles);
 
     unsigned int sphere_VBO, sphere_VAO, sphere_EBO, particle_instance_VBO;
-    // set_up_sphere_rendering(sphere_VBO, sphere_VAO, sphere_EBO); 
+    // set_up_sphere_rendering(sphere_VBO, sphere_VAO, sphere_EBO);
     set_up_particle_rendering(sphere_VBO, sphere_VAO, sphere_EBO, particle_instance_VBO);
 
     // --------------------------------
-    
-    
 
-
-    //imgui config----------------------
+    // imgui config----------------------
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     // set color theme
@@ -692,7 +709,7 @@ int main()
     // OpenGL version 3.3
     ImGui_ImplOpenGL3_Init("#version 330");
     ImGuiIO& io = ImGui::GetIO();
-    (void) io;
+    (void)io;
     // font setting
     io.Fonts->AddFontFromFileTTF("resource/fonts/Cousine-Regular.ttf", 13.0f, NULL, io.Fonts->GetGlyphRangesDefault());
     io.Fonts->AddFontFromFileTTF("resource/fonts/DroidSans.ttf", 13.0f, NULL, io.Fonts->GetGlyphRangesDefault());
@@ -700,15 +717,13 @@ int main()
     io.Fonts->AddFontFromFileTTF("resource/fonts/ProggyClean.ttf", 13.0f, NULL, io.Fonts->GetGlyphRangesDefault());
     io.Fonts->AddFontFromFileTTF("resource/fonts/Roboto-Medium.ttf", 13.0f, NULL, io.Fonts->GetGlyphRangesDefault());
     // --------------------------------
-    
-    // render loop
-    while (!glfwWindowShouldClose(window))
-    {
-        if (regenerate) {
-			regenerate = false;
-			set_up_SPH_particles(particles);
-		}
 
+    // render loop
+    while (!glfwWindowShouldClose(window)) {
+        if (regenerate) {
+            regenerate = false;
+            set_up_SPH_particles(particles);
+        }
 
         // per-frame time logic
         // --------------------
@@ -717,29 +732,22 @@ int main()
         lastFrame = currentFrame;
         float fps = 1.0f / deltaTime;
 
-        LastTime+=deltaTime;
-
-        
+        LastTime += deltaTime;
 
         // input
         // -----
         processInput(window);
-
 
         // do the physics calculation here, this will be the bottleneck of the program
         if (!time_stop) {
             calculate_SPH_movement(particles, deltaTime);
         }
 
-
-
-
         // render part is here
         // ------
         // clear screen
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
-
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // call each render function here
         // ------------------------------
@@ -757,10 +765,8 @@ int main()
         // render_SPH_particles(particles, ourShader, sphere_VBO, sphere_VAO, sphere_EBO);
         render_SPH_particles(particles, instance_shader, sphere_VBO, sphere_VAO, sphere_EBO, particle_instance_VBO);
 
-
         int debug_particle_index = 0;
         int d = debug_particle_index;
-
 
         // std::cout <<"pos"<< particles[d].currPos[0]<<" "<<          particles[d].currPos[1]<<" "<<          particles[d].currPos[2]<<std::endl;
         // std::cout <<"spd"<< particles[d].velocity[0] << " " <<      particles[d].velocity[1] << " " <<      particles[d].velocity[2] << std::endl;
@@ -772,10 +778,6 @@ int main()
         // std::cout<<"camera pos:"<<camera.Position[0]<<" "<<camera.Position[1]<<" "<<camera.Position[2]<<std::endl;
         // std::cout<<"camera front:"<<camera.Front[0]<<" "<<camera.Front[1]<<" "<<camera.Front[2]<<std::endl;
         // std::cout<<"fps:"<<fps<<std::endl;
-
-    
-
-
 
         // imgui---------------------------
         ImGui_ImplOpenGL3_NewFrame();
@@ -793,10 +795,6 @@ int main()
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         // --------------------------------
-    
-
-
-
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
@@ -811,7 +809,6 @@ int main()
 
     glDeleteVertexArrays(2, cube_VAO);
     glDeleteBuffers(2, cube_VBO);
-    
 
     // glfw: terminate, clearing all previously allocated GLFW resources.
     // ------------------------------------------------------------------
@@ -821,7 +818,7 @@ int main()
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
-void processInput(GLFWwindow *window)
+void processInput(GLFWwindow* window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
@@ -845,8 +842,7 @@ void processInput(GLFWwindow *window)
             time_stop = !time_stop;
         }
         isSpaceKeyPressed = true;
-    }
-    else {
+    } else {
         isSpaceKeyPressed = false;
     }
 
@@ -859,11 +855,10 @@ void processInput(GLFWwindow *window)
 // ---------------------------------------------------------------------------------------------
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
-    // make sure the viewport matches the new window dimensions; note that width and 
+    // make sure the viewport matches the new window dimensions; note that width and
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
 }
-
 
 // glfw: whenever the mouse moves, this callback is called
 // -------------------------------------------------------
@@ -872,8 +867,7 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
     float xpos = static_cast<float>(xposIn);
     float ypos = static_cast<float>(yposIn);
 
-    if (firstMouse)
-    {
+    if (firstMouse) {
         lastX = xpos;
         lastY = ypos;
         firstMouse = false;
