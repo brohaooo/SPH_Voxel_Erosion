@@ -1,9 +1,6 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image/stb_image.h>
-
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -15,14 +12,13 @@
 #include <vector>
 #include <unordered_map>
 #include <chrono>
-#include <list>
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/hash.hpp>
 
-#include "imgui/imgui.h"
-#include "imgui/imgui_impl_glfw.h"
-#include "imgui/imgui_impl_opengl3.h"
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
 
 #include <physics.h>
 #include <render.h>
@@ -33,36 +29,30 @@ const bool _vSync = true; // Enable vsync
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-void processInput(GLFWwindow *window);
+void processInput(GLFWwindow* window);
 
 // settings
 extern const unsigned int SCR_WIDTH = 1080;
 extern const unsigned int SCR_HEIGHT = 720;
 
-// camera 
-extern Camera camera(glm::vec3(1.39092f, 1.55529f, 2.59475f));
+// camera
+extern Camera camera(glm::vec3(5.5f, 4.5f, 5.5f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
 
 // timing
-float deltaTime = 0.0f;	// time between current frame and last frame
+float deltaTime = 0.0f; // time between current frame and last frame
 float lastFrame = 0.0f;
 float LastTime = 0.0f;
-bool is_realtime = true; // the current simulation is in real time or not
-float average_fps = 0.0f;
-float sliding_deltaTime = 0.0f;
-const int num_frames_to_average = 100;
-int num_frames_in_sliding_window = 0;
-std::list<float> frameTime_list;
-
 
 // boundary, see details in physics.h
 extern const GLfloat x_max, x_min, y_max, y_min, z_max, z_min;
 bounding_box boundary = bounding_box(x_max, x_min, y_max, y_min, z_max, z_min);
 
 // voxel field
-extern int voxel_x_num = 3, voxel_y_num = 3, voxel_z_num = 3;
+extern int voxel_x_num = 32, voxel_y_num = 32, voxel_z_num = 32;
+int x_num = voxel_x_num, y_num = voxel_y_num, z_num = voxel_z_num;
 voxel_field V = voxel_field(voxel_x_num, voxel_y_num, voxel_z_num);
 
 extern const int particle_num = 200;
@@ -76,9 +66,6 @@ bool regenerate = false;
 // tracking space key press
 bool isSpaceKeyPressed = false;
 
-
-
-
 int main()
 {
 
@@ -89,8 +76,7 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    //glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE); // Enable double buffering
-
+    // glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE); // Enable double buffering
 
 #ifdef __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
@@ -99,8 +85,7 @@ int main()
     // glfw window creation
     // --------------------
     GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "SPH_Voxel_Erosion", NULL, NULL);
-    if (window == NULL)
-    {
+    if (window == NULL) {
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
         return -1;
@@ -121,12 +106,10 @@ int main()
 
     // glad: load all OpenGL function pointers
     // ---------------------------------------
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-    {
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
-
 
     // configure global opengl state
     // -----------------------------
@@ -139,28 +122,12 @@ int main()
     camera.MovementSpeed = 1.0f;
     camera.Front = glm::vec3(-0.373257, -0.393942, -0.826684);
 
-
-
-
-
     // build and compile our shader program
     // ------------------------------------
-    Shader ourShader("../../shader/shader.vs", "../../shader/shader.fs");// default shader, only render color
-    Shader instance_shader("../../shader/shader_instance.vs", "../../shader/shader_instance.fs");// instance shader, support the instance position
-    
-
-    
+    Shader ourShader("shader/shader.vs", "shader/shader.fs");
+    Shader instance_shader("shader/shader_instance.vs", "shader/shader_instance.fs");
 
     // scene building----------------------
-    
-
-    // set up voxel field
-    set_up_voxel_field(V);
-
-    // set up particles
-    set_up_SPH_particles(particles);
-
-
 
     // set up coordinate axes to render
     unsigned int coordi_VBO, coordi_VAO;
@@ -171,22 +138,23 @@ int main()
     unsigned int cube_VAO[2];
     set_up_cube_base_rendering(cube_VBO, cube_VAO);
 
-
     // set up boundary
     unsigned int bound_VBO[2], bound_VAO[2];
     set_up_boundary_rendering(bound_VBO, bound_VAO, boundary);
 
+    // set up voxel field
+    set_up_voxel_field(V);
 
-    // set up sphere model and particle instance
+    // set up particles
+    set_up_SPH_particles(particles);
+
     unsigned int sphere_VBO, sphere_VAO, sphere_EBO, particle_instance_VBO;
+    // set_up_sphere_rendering(sphere_VBO, sphere_VAO, sphere_EBO);
     set_up_particle_rendering(sphere_VBO, sphere_VAO, sphere_EBO, particle_instance_VBO);
 
     // --------------------------------
-    
-    
 
-
-    //imgui config----------------------
+    // imgui config----------------------
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     // set color theme
@@ -196,24 +164,21 @@ int main()
     // OpenGL version 3.3
     ImGui_ImplOpenGL3_Init("#version 330");
     ImGuiIO& io = ImGui::GetIO();
-    (void) io;
+    (void)io;
     // font setting
-    io.Fonts->AddFontFromFileTTF("../../resource/fonts/Cousine-Regular.ttf", 13.0f, NULL, io.Fonts->GetGlyphRangesDefault());
-    io.Fonts->AddFontFromFileTTF("../../resource/fonts/DroidSans.ttf", 13.0f, NULL, io.Fonts->GetGlyphRangesDefault());
-    io.Fonts->AddFontFromFileTTF("../../resource/fonts/Karla-Regular.ttf", 13.0f, NULL, io.Fonts->GetGlyphRangesDefault());
-    io.Fonts->AddFontFromFileTTF("../../resource/fonts/ProggyClean.ttf", 13.0f, NULL, io.Fonts->GetGlyphRangesDefault());
-    io.Fonts->AddFontFromFileTTF("../../resource/fonts/Roboto-Medium.ttf", 13.0f, NULL, io.Fonts->GetGlyphRangesDefault());
+    io.Fonts->AddFontFromFileTTF("resource/fonts/Cousine-Regular.ttf", 13.0f, NULL, io.Fonts->GetGlyphRangesDefault());
+    io.Fonts->AddFontFromFileTTF("resource/fonts/DroidSans.ttf", 13.0f, NULL, io.Fonts->GetGlyphRangesDefault());
+    io.Fonts->AddFontFromFileTTF("resource/fonts/Karla-Regular.ttf", 13.0f, NULL, io.Fonts->GetGlyphRangesDefault());
+    io.Fonts->AddFontFromFileTTF("resource/fonts/ProggyClean.ttf", 13.0f, NULL, io.Fonts->GetGlyphRangesDefault());
+    io.Fonts->AddFontFromFileTTF("resource/fonts/Roboto-Medium.ttf", 13.0f, NULL, io.Fonts->GetGlyphRangesDefault());
     // --------------------------------
 
-
     // render loop
-    while (!glfwWindowShouldClose(window))
-    {
+    while (!glfwWindowShouldClose(window)) {
         if (regenerate) {
-			regenerate = false;
-			set_up_SPH_particles(particles);
-		}
-
+            regenerate = false;
+            set_up_SPH_particles(particles);
+        }
 
         // per-frame time logic
         // --------------------
@@ -221,57 +186,23 @@ int main()
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
         float fps = 1.0f / deltaTime;
-        LastTime+=deltaTime;
 
-        
-
-        if (num_frames_in_sliding_window >= num_frames_to_average) {
-            frameTime_list.pop_front();
-            frameTime_list.push_back(currentFrame);
-		}
-        else {
-            frameTime_list.push_back(fps);
-            num_frames_in_sliding_window++;
-		}
-        float average_fps = 1.0f * (num_frames_in_sliding_window-1) / (frameTime_list.back() - frameTime_list.front());
-
-
+        LastTime += deltaTime;
 
         // input
         // -----
         processInput(window);
 
-
-        // if physics calculation is too slow, we can use a fixed time step to avoid the simulation error
-        // caused by the time step is too large
-        if (deltaTime > 0.0167f) {
-            is_realtime = false;
-        }
-        else {
-            is_realtime = true;
-        }
-
         // do the physics calculation here, this will be the bottleneck of the program
         if (!time_stop) {
-            if (!is_realtime) {
-                calculate_SPH_movement(particles, 0.0167);
-                
-            }
-            else {
-                calculate_SPH_movement(particles, deltaTime);
-            }
-            
+            calculate_SPH_movement(particles, deltaTime);
         }
-
-
-
 
         // render part is here
         // ------
         // clear screen
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
-
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // call each render function here
         // ------------------------------
@@ -289,10 +220,8 @@ int main()
         // render_SPH_particles(particles, ourShader, sphere_VBO, sphere_VAO, sphere_EBO);
         render_SPH_particles(particles, instance_shader, sphere_VBO, sphere_VAO, sphere_EBO, particle_instance_VBO);
 
-
         int debug_particle_index = 0;
         int d = debug_particle_index;
-
 
         // std::cout <<"pos"<< particles[d].currPos[0]<<" "<<          particles[d].currPos[1]<<" "<<          particles[d].currPos[2]<<std::endl;
         // std::cout <<"spd"<< particles[d].velocity[0] << " " <<      particles[d].velocity[1] << " " <<      particles[d].velocity[2] << std::endl;
@@ -305,20 +234,14 @@ int main()
         // std::cout<<"camera front:"<<camera.Front[0]<<" "<<camera.Front[1]<<" "<<camera.Front[2]<<std::endl;
         // std::cout<<"fps:"<<fps<<std::endl;
 
-    
-
-
-
         // imgui---------------------------
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
-        ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x - 240, 10), ImGuiCond_Always);
-        ImGui::SetNextWindowSize(ImVec2(230, 120), ImGuiCond_Always);
+        ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x - 250, 10), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowSize(ImVec2(240, 100), ImGuiCond_FirstUseEver);
         if (ImGui::Begin("LOG", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize)) {
-
-            ImGui::Text("FPS: %.1f \t AVG_FPS: %.1f", fps, average_fps);
-            ImGui::Text("IS_REALTIME: %s", is_realtime ? "TRUE" : "FALSE");
+            ImGui::Text("FPS: %.1f", fps);
             ImGui::Text("CAM POS: %.3f %.3f %.3f", camera.Position[0], camera.Position[1], camera.Position[2]);
             ImGui::Text("CAM DIR: %.3f %.3f %.3f", camera.Front[0], camera.Front[1], camera.Front[2]);
             ImGui::Text("CAM FOV: %.3f", camera.Zoom);
@@ -327,10 +250,6 @@ int main()
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         // --------------------------------
-    
-
-
-
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
@@ -345,7 +264,6 @@ int main()
 
     glDeleteVertexArrays(2, cube_VAO);
     glDeleteBuffers(2, cube_VBO);
-    
 
     // glfw: terminate, clearing all previously allocated GLFW resources.
     // ------------------------------------------------------------------
@@ -355,7 +273,7 @@ int main()
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
-void processInput(GLFWwindow *window)
+void processInput(GLFWwindow* window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
@@ -379,8 +297,7 @@ void processInput(GLFWwindow *window)
             time_stop = !time_stop;
         }
         isSpaceKeyPressed = true;
-    }
-    else {
+    } else {
         isSpaceKeyPressed = false;
     }
 
@@ -393,11 +310,10 @@ void processInput(GLFWwindow *window)
 // ---------------------------------------------------------------------------------------------
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
-    // make sure the viewport matches the new window dimensions; note that width and 
+    // make sure the viewport matches the new window dimensions; note that width and
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
 }
-
 
 // glfw: whenever the mouse moves, this callback is called
 // -------------------------------------------------------
@@ -406,8 +322,7 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
     float xpos = static_cast<float>(xposIn);
     float ypos = static_cast<float>(yposIn);
 
-    if (firstMouse)
-    {
+    if (firstMouse) {
         lastX = xpos;
         lastY = ypos;
         firstMouse = false;

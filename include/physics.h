@@ -229,7 +229,7 @@ public:
 };
 
 // definition of the bounding box... needed here
-extern const GLfloat x_max = 1.0f, x_min = -1.0f, y_max = 1.0f, y_min = -1.0f, z_max = 1.0f, z_min = -1.0f;
+extern const GLfloat x_max = 8.0f, x_min = -8.0f, y_max = 8.0f, y_min = -8.0f, z_max = 8.0f, z_min = -8.0f;
 
 // generate a random vec3 in the min and max range
 glm::vec3 generateRandomVec3(float _x_max = x_max, float _x_min = x_min, float _y_max = y_max, float _y_min = y_min, float _z_max = z_max, float _z_min = z_min) {

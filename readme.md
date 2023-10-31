@@ -6,6 +6,14 @@ final project for CGS59200
 
 This project uses CMake to build and is configured to support MSVC and other compilers under Windows10/11.
 
+### Prerequisites
+
+To get started, you will need to install the submodules using following commands:
+
+```powershell
+git submodule update --init --recursive
+```
+
 To build this project, run the following commands:
 
 ```powershell
