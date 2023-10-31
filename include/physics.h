@@ -371,6 +371,7 @@ void calculate_SPH_movement(std::vector<particle> & p, float frameTimeDiff) {
         }
 
 
+
         p[i].velocity = new_velocity;
         p[i].prevPos = p[i].currPos;
         p[i].currPos = new_position;
