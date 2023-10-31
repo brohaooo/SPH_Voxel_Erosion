@@ -15,6 +15,7 @@
 #include <vector>
 #include <unordered_map>
 #include <chrono>
+#include <list>
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/hash.hpp>
@@ -48,8 +49,12 @@ bool firstMouse = true;
 float deltaTime = 0.0f;	// time between current frame and last frame
 float lastFrame = 0.0f;
 float LastTime = 0.0f;
-
-
+bool is_realtime = true; // the current simulation is in real time or not
+float average_fps = 0.0f;
+float sliding_deltaTime = 0.0f;
+const int num_frames_to_average = 100;
+int num_frames_in_sliding_window = 0;
+std::list<float> frameTime_list;
 
 
 // boundary, see details in physics.h
@@ -147,6 +152,15 @@ int main()
     
 
     // scene building----------------------
+    
+
+    // set up voxel field
+    set_up_voxel_field(V);
+
+    // set up particles
+    set_up_SPH_particles(particles);
+
+
 
     // set up coordinate axes to render
     unsigned int coordi_VBO, coordi_VAO;
@@ -163,14 +177,8 @@ int main()
     set_up_boundary_rendering(bound_VBO, bound_VAO, boundary);
 
 
-    // set up voxel field
-    set_up_voxel_field(V);
-
-    // set up particles
-    set_up_SPH_particles(particles);
-
+    // set up sphere model and particle instance
     unsigned int sphere_VBO, sphere_VAO, sphere_EBO, particle_instance_VBO;
-    // set_up_sphere_rendering(sphere_VBO, sphere_VAO, sphere_EBO); 
     set_up_particle_rendering(sphere_VBO, sphere_VAO, sphere_EBO, particle_instance_VBO);
 
     // --------------------------------
@@ -196,7 +204,8 @@ int main()
     io.Fonts->AddFontFromFileTTF("../../resource/fonts/ProggyClean.ttf", 13.0f, NULL, io.Fonts->GetGlyphRangesDefault());
     io.Fonts->AddFontFromFileTTF("../../resource/fonts/Roboto-Medium.ttf", 13.0f, NULL, io.Fonts->GetGlyphRangesDefault());
     // --------------------------------
-    
+
+
     // render loop
     while (!glfwWindowShouldClose(window))
     {
@@ -212,19 +221,46 @@ int main()
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
         float fps = 1.0f / deltaTime;
-
         LastTime+=deltaTime;
 
         
+
+        if (num_frames_in_sliding_window >= num_frames_to_average) {
+            frameTime_list.pop_front();
+            frameTime_list.push_back(currentFrame);
+		}
+        else {
+            frameTime_list.push_back(fps);
+            num_frames_in_sliding_window++;
+		}
+        float average_fps = 1.0f * (num_frames_in_sliding_window-1) / (frameTime_list.back() - frameTime_list.front());
+
+
 
         // input
         // -----
         processInput(window);
 
 
+        // if physics calculation is too slow, we can use a fixed time step to avoid the simulation error
+        // caused by the time step is too large
+        if (deltaTime > 0.0167f) {
+            is_realtime = false;
+        }
+        else {
+            is_realtime = true;
+        }
+
         // do the physics calculation here, this will be the bottleneck of the program
         if (!time_stop) {
-            calculate_SPH_movement(particles, deltaTime);
+            if (!is_realtime) {
+                calculate_SPH_movement(particles, 0.0167);
+                
+            }
+            else {
+                calculate_SPH_movement(particles, deltaTime);
+            }
+            
         }
 
 
@@ -277,10 +313,12 @@ int main()
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
-        ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x - 250, 10), ImGuiCond_FirstUseEver);
-        ImGui::SetNextWindowSize(ImVec2(240, 100), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x - 240, 10), ImGuiCond_Always);
+        ImGui::SetNextWindowSize(ImVec2(230, 120), ImGuiCond_Always);
         if (ImGui::Begin("LOG", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize)) {
-            ImGui::Text("FPS: %.1f", fps);
+
+            ImGui::Text("FPS: %.1f \t AVG_FPS: %.1f", fps, average_fps);
+            ImGui::Text("IS_REALTIME: %s", is_realtime ? "TRUE" : "FALSE");
             ImGui::Text("CAM POS: %.3f %.3f %.3f", camera.Position[0], camera.Position[1], camera.Position[2]);
             ImGui::Text("CAM DIR: %.3f %.3f %.3f", camera.Front[0], camera.Front[1], camera.Front[2]);
             ImGui::Text("CAM FOV: %.3f", camera.Zoom);
