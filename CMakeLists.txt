@@ -56,9 +56,11 @@ include_directories(./
                     ./3rd_party/glad/include
                     ./3rd_party/imgui
                     ./3rd_party/imgui/backends
-                    ./3rd_party/FastNoise2/include)
+                    ./3rd_party/FastNoise2/include
+                    ./3rd_party/FreeImage
+)
 
-link_directories(${CMAKE_CURRENT_SOURCE_DIR}/3rd_party/FastNoise2/lib)
+link_directories(${CMAKE_CURRENT_SOURCE_DIR}/3rd_party/FreeImage/lib)
 
 
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS src/*.cpp src/*.h)
@@ -71,7 +73,7 @@ add_executable(${PROJECT_NAME} ${SOURCES} ${IMGUI_FILES})
 
 target_include_directories(${PROJECT_NAME} PRIVATE include)
 
-target_link_libraries(${PROJECT_NAME} PUBLIC glfw OpenMP::OpenMP_CXX FastNoise)
+target_link_libraries(${PROJECT_NAME} PUBLIC glfw OpenMP::OpenMP_CXX FastNoise FreeImage)
 
 include(CMakePrintHelpers)
 cmake_print_properties(
@@ -119,6 +121,16 @@ add_custom_command(
     COMMAND ${CMAKE_COMMAND} -E echo
     "copying ${CMAKE_CURRENT_SOURCE_DIR}/shader to ${OUTPUT_DIR}/shader"
     COMMENT "Copying shaders to build directory")
+
+file(GLOB SRC_DLLS ${CMAKE_CURRENT_SOURCE_DIR}/3rd_party/FreeImage/lib/*.dll)
+add_custom_command(
+        TARGET ${PROJECT_NAME}
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${SRC_DLLS}
+        $<TARGET_FILE_DIR:${PROJECT_NAME}>/FreeImage.dll
+        COMMAND ${CMAKE_COMMAND} -E echo
+        COMMENT "Copying dlls to build directory")
 
 
 # Add support for clangd

@@ -16,6 +16,7 @@
 #include <unordered_map>
 #include <chrono>
 #include <list>
+#include "offscreen.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/hash.hpp>
@@ -162,14 +163,18 @@ int main()
 
     glfwSwapInterval(_vSync ? 1 : 0); // Enable vsync
 
-    // register callback functions
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    glfwSetCursorPosCallback(window, mouse_callback);
-    glfwSetScrollCallback(window, scroll_callback);
+    if (USE_OFFSCREEN) {
+        // register callback functions
+        glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+        glfwSetCursorPosCallback(window, mouse_callback);
+        glfwSetScrollCallback(window, scroll_callback);
 
-    // tell GLFW to capture our mouse
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        // tell GLFW to capture our mouse
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    } else {
+        SetOffscreenWidthHeight(SCR_WIDTH, SCR_HEIGHT);
+    }
 
     // glad: load all OpenGL function pointers
     // ---------------------------------------
@@ -420,8 +425,12 @@ int main()
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         // --------------------------------
-    
 
+
+        if (USE_OFFSCREEN) {
+            OffscreenProcessCamera(&camera);
+            OffscreenSaveRGBA();
+        }
 
 
 
