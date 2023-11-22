@@ -7,7 +7,7 @@
 #include <glm/glm.hpp>
 
 #ifndef USE_OFFSCREEN
-#define USE_OFFSCREEN 1
+#define USE_OFFSCREEN 0
 #endif
 
 static GLuint WIDTH, HEIGHT;

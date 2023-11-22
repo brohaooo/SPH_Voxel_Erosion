@@ -403,6 +403,7 @@ out/
 
 # Editors
 .idea/
+.vscode/
 compile_commands.json
 
 # CMake files

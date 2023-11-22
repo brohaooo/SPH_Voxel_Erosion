@@ -164,6 +164,8 @@ int main()
     glfwSwapInterval(_vSync ? 1 : 0); // Enable vsync
 
     if (USE_OFFSCREEN) {
+        SetOffscreenWidthHeight(SCR_WIDTH, SCR_HEIGHT);
+    } else {
         // register callback functions
         glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
         glfwSetCursorPosCallback(window, mouse_callback);
@@ -172,8 +174,6 @@ int main()
         // tell GLFW to capture our mouse
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-    } else {
-        SetOffscreenWidthHeight(SCR_WIDTH, SCR_HEIGHT);
     }
 
     // glad: load all OpenGL function pointers
