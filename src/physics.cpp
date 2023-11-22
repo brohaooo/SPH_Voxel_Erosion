@@ -23,15 +23,15 @@ std::vector<std::vector<std::vector<float>>> CreateGround(int xStart, int yStart
     FastNoise::SmartNode<> fnGenerator = FastNoise::NewFromEncodedNodeTree("EwCamZk+DQAMAAAAw/VoQAkAAKRwvT4AAAAAPw==");
 
     // 定义噪声图的大小
-    const int noiseSizeX = 32;
-    const int noiseSizeY = 32;
+    const int noiseSizeX = 128;
+    const int noiseSizeY = 128;
     std::vector<float> noiseOutput(noiseSizeX * noiseSizeY);
 
     // 生成2D噪声
-    fnGenerator->GenUniformGrid2D(noiseOutput.data(), xStart, yStart, noiseSizeX, noiseSizeY, 0.15f, 1337);
+    fnGenerator->GenUniformGrid2D(noiseOutput.data(), xStart, yStart, noiseSizeX, noiseSizeY, 0.05f, 1337);
 
     // 噪声值的最大高度
-    const int maxHeight = 12;
+    const int maxHeight = 50;
 
     // 初始化三维数组
     auto noise3DArray = std::vector<std::vector<std::vector<float>>>(noiseSizeX, std::vector<std::vector<float>>(noiseSizeY, std::vector<float>(maxHeight, 0)));
@@ -65,8 +65,8 @@ void set_up_voxel_field(voxel_field& V, float voxel_density) {
     v1.update_color();
 
     // 生成地形数据
-    int xStart = 0; // 可以根据需要更改这些值
-    int yStart = 0;
+    int xStart = 500; // 可以根据需要更改这些值
+    int yStart = 200;
     auto terrainData = CreateGround(xStart, yStart);
 
 
@@ -112,8 +112,10 @@ void set_up_SPH_particles(std::vector<particle>& P) {
         p1.currPos = generateRandomVec3();
         p1.currPos.y /= 6;
         p1.currPos.y += (y_max - y_min) * 5 / 6;
-        p1.currPos.x /= 6;
-        //p1.currPos.x += (x_max - x_min) * 3 / 4;
+        p1.currPos.x /= 8;
+        p1.currPos.x += (x_max - x_min) * 3 / 8;
+        p1.currPos.z /= 8;
+        p1.currPos.z += (z_max - z_min) * 3 / 8;
         P[i] = p1;
     }
 
@@ -1122,10 +1124,12 @@ void recycle_particle(std::vector<particle>& p, std::vector<int>& recycle_list) 
 
     for (int n : recycle_list) {
         p1.currPos = generateRandomVec3();
-        p1.currPos.y /= 4;
-        p1.currPos.y += (y_max - y_min) * 3 / 4;
-        p1.currPos.x /= 4;
-        //p1.currPos.x += (x_max - x_min) * 3 / 4;
+        p1.currPos.y /= 6;
+        p1.currPos.y += (y_max - y_min) * 5 / 6;
+        p1.currPos.x /= 8;
+        p1.currPos.x += (x_max - x_min) * 3 / 8;
+        p1.currPos.z /= 8;
+        p1.currPos.z += (z_max - z_min) * 3 / 8;
         p[n] = p1;
     }
     recycle_list.clear();

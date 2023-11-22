@@ -85,7 +85,7 @@ std::list<float> frameTime_list;
 
 
 // boundary, see details in physics.h
-extern const GLfloat x_max = 16.0f, x_min = 0.0f, y_max = 7.0f, y_min = 0.0f, z_max = 16.0f, z_min = 0.0f;
+extern const GLfloat x_max = 64.0f, x_min = 0.0f, y_max = 35.0f, y_min = 0.0f, z_max = 64.0f, z_min = 0.0f;
 bounding_box boundary = bounding_box(x_max, x_min, y_max, y_min, z_max, z_min);
 
 // voxel field
