@@ -159,7 +159,7 @@ int main() {
 
     glfwSwapInterval(_vSync ? 1 : 0); // Enable vsync
 
-    if (USE_OFFSCREEN) {
+    if (g_use_offscreen) {
         SetOffscreenWidthHeight(SCR_WIDTH, SCR_HEIGHT);
 
         glfwSetCursorPosCallback(window, mouse_callback);
@@ -306,7 +306,7 @@ int main() {
         // -----
         processInput(window);
 
-        if (!USE_OFFSCREEN) {
+        if (!g_use_offscreen) {
             // if physics calculation is too slow, we can use a fixed time step to avoid the simulation error
             // caused by the time step is too large
             if (deltaTime > 0.0167f) {
@@ -395,7 +395,7 @@ int main() {
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         // --------------------------------
 
-        if (USE_OFFSCREEN) {
+        if (g_use_offscreen) {
             OffscreenProcessCameraNew(&camera);
             OffscreenSaveRGBA();
         }

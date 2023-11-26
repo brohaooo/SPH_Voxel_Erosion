@@ -7,10 +7,16 @@
 #include <glm/glm.hpp>
 #include "data_structures.h"
 
-//#ifndef USE_OFFSCREEN
-//#define USE_OFFSCREEN 1
-//#endif
-inline bool USE_OFFSCREEN = true;
+// Configurations
+#ifndef OFFLINE_RENDERING
+inline bool g_use_offscreen = true;
+#else
+inline bool g_use_offscreen = false;
+#endif
+
+static constexpr int fps = 60;
+static constexpr int simulation_time = 300; // seconds
+
 
 static GLuint WIDTH, HEIGHT;
 
@@ -168,9 +174,6 @@ void OffscreenProcessCamera(Camera *camera) {
         CatmullRomPoints.push_back(g_camera_positions[1]);
     }
 
-    static constexpr int fps = 60;
-    static constexpr int simulation_time = 300; // seconds
-
     static constexpr int total_frame = fps * simulation_time; // 60 frames per second
     static int frame_remains = total_frame; // 60 frames per second
 
@@ -221,8 +224,8 @@ void OffscreenProcessCamera(Camera *camera) {
 }
 
 
-void OffscreenProcessCameraNew(Camera *camera) {
-    if (camera == nullptr) {
+void OffscreenProcessCameraNew(Camera *pCamera) {
+    if (pCamera == nullptr) {
         return;
     }
 
@@ -241,8 +244,8 @@ void OffscreenProcessCameraNew(Camera *camera) {
         float y_mid = (y_min + y_max) * 0.5f;
         float z_mid = (z_min + z_max) * 0.5f;
 
-        camera->Position = camera_initial_position;
-        camera->Front = glm::normalize(camera_initial_lookat - camera_initial_position);
+        pCamera->Position = camera_initial_position;
+        pCamera->Front = glm::normalize(camera_initial_lookat - camera_initial_position);
 
         CatmullRomPoints.push_back(2.f * camera_initial_position - camera_route_positions[0]);
         CatmullRomPoints.push_back(camera_initial_position);
@@ -251,9 +254,6 @@ void OffscreenProcessCameraNew(Camera *camera) {
 
         particle_render_scale = particle_render_scale_maximum;
     }
-
-    static constexpr int fps = 60;
-    static constexpr int simulation_time = 300; // seconds
 
     static constexpr int total_frame = fps * simulation_time; // 60 frames per second
     static int frame_remains = total_frame; // 60 frames per second
