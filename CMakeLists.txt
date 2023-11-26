@@ -41,6 +41,11 @@ add_subdirectory(./3rd_party/FastNoise2)
 # GLM
 add_compile_definitions(GLM_LANG_STL11_FORCED) # fix GLM compile error in clang++
 
+# offscreen rendering
+if(OFFLINE_RENDERING)
+    add_compile_definitions(OFFLINE_RENDERING)
+endif()
+
 set(IMGUI_FILES
 ./3rd_party/imgui/imgui.cpp
 ./3rd_party/imgui/imgui_draw.cpp

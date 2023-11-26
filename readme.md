@@ -26,11 +26,11 @@ Or you can just open MSVC and it will help you do all the thing
 
 ## Simulation Instructions
 
-If you want to use the offline rendering, build it with `OFFLINE_RENDERING` option.
+If you want to use the offline rendering, configure it with `OFFLINE_RENDERING` option.
 
 And you need to make a directory named `out` under `bin/<Debug/Release>`.
 
 ```powershell
-cmake --build build --config <Release/Debug> -DOFFLINE_RENDERING=ON
+cmake -S . -Bbuild -DCMAKE_BUILD_TYPE=<Release/Debug> -DOFFLINE_RENDERING=ON
 mkdir bin/<Debug/Release>/out
 ```

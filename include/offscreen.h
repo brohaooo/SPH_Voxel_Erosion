@@ -8,7 +8,7 @@
 #include "data_structures.h"
 
 // Configurations
-#ifndef OFFLINE_RENDERING
+#ifdef OFFLINE_RENDERING
 inline bool g_use_offscreen = true;
 #else
 inline bool g_use_offscreen = false;
