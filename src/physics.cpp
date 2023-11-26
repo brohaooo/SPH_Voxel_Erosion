@@ -23,8 +23,8 @@ std::vector<std::vector<std::vector<float>>> CreateGround(int xStart, int yStart
     FastNoise::SmartNode<> fnGenerator = FastNoise::NewFromEncodedNodeTree("EwCamZk+DQAMAAAAw/VoQAkAAKRwvT4AAAAAPw==");
 
     // 定义噪声图的大小
-    const int noiseSizeX = 128;
-    const int noiseSizeY = 128;
+    const int noiseSizeX = (x_max - x_min) * 2;
+    const int noiseSizeY = (z_max - z_min) * 2;
     std::vector<float> noiseOutput(noiseSizeX * noiseSizeY);
 
     // 生成2D噪声
@@ -112,10 +112,14 @@ void set_up_SPH_particles(std::vector<particle>& P) {
         p1.currPos = generateRandomVec3();
         p1.currPos.y /= 6;
         p1.currPos.y += (y_max - y_min) * 5 / 6;
-        p1.currPos.x /= 8;
-        p1.currPos.x += (x_max - x_min) * 3 / 8;
-        p1.currPos.z /= 8;
-        p1.currPos.z += (z_max - z_min) * 3 / 8;
+//        p1.currPos.x /= 8;
+//        p1.currPos.x += (x_max - x_min) * 3 / 8;
+//        p1.currPos.z /= 8;
+//        p1.currPos.z += (z_max - z_min) * 3 / 8;
+        p1.currPos.x *= 0.8;
+        p1.currPos.x += (x_max - x_min) * 2 / 16;
+        p1.currPos.z *= 0.8;
+        p1.currPos.z += (z_max - z_min) * 2 / 16;
         P[i] = p1;
     }
 
@@ -825,7 +829,7 @@ void calculate_SPH_movement(std::vector<particle>& p, float frameTimeDiff, voxel
                     new_velocity.z = -old_velocity.z;
                     collision_point.z = new_position.z;
                 }
-                new_velocity *= 0.8f;
+                new_velocity *= 0.5f;
 
                 // quickly detect if the particle's new bounced position is still inside the voxel (just fast approximation, not physical based)
                 current_voxel_index = world_to_voxel(old_position, V);
@@ -853,6 +857,7 @@ void calculate_SPH_movement(std::vector<particle>& p, float frameTimeDiff, voxel
         }
         if (new_position.x < x_min)
         {
+            recycle_list.push_back(i);
             new_position.x = x_min;
             new_velocity.x *= -1 * wall_damping;
         }
@@ -864,11 +869,13 @@ void calculate_SPH_movement(std::vector<particle>& p, float frameTimeDiff, voxel
         }
         if (new_position.z < z_min)
         {
+            recycle_list.push_back(i);
             new_position.z = z_min;
             new_velocity.z *= -1 * wall_damping;
         }
         else if (new_position.z > z_max)
         {
+            recycle_list.push_back(i);
             new_position.z = z_max;
             new_velocity.z *= -1 * wall_damping;
         }
@@ -1126,10 +1133,10 @@ void recycle_particle(std::vector<particle>& p, std::vector<int>& recycle_list) 
         p1.currPos = generateRandomVec3();
         p1.currPos.y /= 6;
         p1.currPos.y += (y_max - y_min) * 5 / 6;
-        p1.currPos.x /= 8;
-        p1.currPos.x += (x_max - x_min) * 3 / 8;
-        p1.currPos.z /= 8;
-        p1.currPos.z += (z_max - z_min) * 3 / 8;
+        p1.currPos.x *= 0.3;
+        p1.currPos.x += (x_max - x_min) * 7 / 16;
+        p1.currPos.z *= 0.3;
+        p1.currPos.z += (z_max - z_min) * 7 / 16;
         p[n] = p1;
     }
     recycle_list.clear();

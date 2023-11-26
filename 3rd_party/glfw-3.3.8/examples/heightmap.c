@@ -81,7 +81,7 @@ static const char* fragment_shader_text =
 static GLfloat view_angle = 45.0f;
 static GLfloat aspect_ratio = 4.0f/3.0f;
 static GLfloat z_near = 1.0f;
-static GLfloat z_far = 100.f;
+static GLfloat z_far = 10000.f;
 
 /* Projection matrix */
 static GLfloat projection_matrix[16] = {

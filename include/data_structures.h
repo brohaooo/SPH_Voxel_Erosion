@@ -43,7 +43,7 @@ const float smoothing_length = 20.0f * particle_radius;
 const float particle_viscosity = 190.0f; //175
 const glm::vec3 gravity_force = glm::vec3(0.0f, -10.0f, 0.0f);
 const float particle_stiffness = 200.0f; // aka K
-const float wall_damping = 0.8f;
+const float wall_damping = 0.35f;
 
 const float voxel_destroy_density_threshold = 0.01f;
 const float voxel_not_destroyable_min_density = 380000.0f;
@@ -56,6 +56,8 @@ const float diffusion_rate = 0.00006f; // the rate that controls the diffusion o
 
 extern int current_particle_num; // can use this to control the number of particles in the system, actual particle number is min(particle_num,current_particle_num)
 
+extern constexpr float particle_render_scale_minimum = 0.005;
+extern constexpr float particle_render_scale_maximum = 0.17;
 extern float particle_render_scale;
 
 

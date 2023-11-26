@@ -18,6 +18,8 @@
 
 
 
+static float z_near = 0.5f;
+static float z_far = 10000.0f;
 
 
 
@@ -50,7 +52,7 @@ void renderCoordinateAxes(Shader& ourShader, unsigned int& coordi_VBO, unsigned 
     glBindVertexArray(coordi_VAO);
 
     // get MVP matrix and set it
-    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.5f, 100.0f);
+    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, z_near, z_far);
     ourShader.setMat4("projection", projection);
     glm::mat4 view = camera.GetViewMatrix();
     ourShader.setMat4("view", view);
@@ -337,7 +339,7 @@ void render_cube(Shader& ourShader, unsigned int cube_VBO[2], unsigned int cube_
 
 
     // get VP matrix and set it together with Model matrix
-    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.5f, 100.0f);
+    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, z_near, z_far);
     ourShader.setMat4("projection", projection);
     glm::mat4 view = camera.GetViewMatrix();
     ourShader.setMat4("view", view);
@@ -362,7 +364,7 @@ void render_cube(Shader& ourShader, unsigned int cube_VBO[2], unsigned int cube_
 void render_cube_instanced(Shader& ourShader, unsigned int cube_VAO[2], GLsizei intance_num, unsigned int voxel_instance_VBO, GLfloat* voxel_instance_data, glm::mat4 scale) {
     // activate selected shader
     ourShader.use();
-    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.5f, 100.0f);
+    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, z_near, z_far);
     ourShader.setMat4("projection", projection);
     glm::mat4 view = camera.GetViewMatrix();
     ourShader.setMat4("view", view);
@@ -538,7 +540,7 @@ void render_sphere(Shader& ourShader, unsigned int& sphere_VBO, unsigned int& sp
     glBindVertexArray(sphere_VAO);
 
     // get MVP matrix and set it
-    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.5f, 100.0f);
+    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, z_near, z_far);
     ourShader.setMat4("projection", projection);
     glm::mat4 view = camera.GetViewMatrix();
     ourShader.setMat4("view", view);
@@ -555,7 +557,7 @@ void render_sphere(Shader& ourShader, unsigned int& sphere_VBO, unsigned int& sp
 void render_sphere_instanced(Shader& ourShader, unsigned int& sphere_VAO, GLsizei intance_num, unsigned int& particle_instance_VBO, GLfloat* particle_instance_data) {
     // activate selected shader
     ourShader.use();
-    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.5f, 100.0f);
+    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, z_near, z_far);
     ourShader.setMat4("projection", projection);
     glm::mat4 view = camera.GetViewMatrix();
     ourShader.setMat4("view", view);
@@ -615,7 +617,7 @@ void render_boundary(Shader& ourShader, unsigned int bound_VBO[2], unsigned int 
 
 
     // get MVP matrix and set it
-    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.5f, 100.0f);
+    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, z_near, z_far);
     ourShader.setMat4("projection", projection);
     glm::mat4 view = camera.GetViewMatrix();
     ourShader.setMat4("view", view);
