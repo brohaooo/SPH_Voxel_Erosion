@@ -29,6 +29,21 @@ extern unsigned int  global_cube_VAO[2];
 extern Shader* global_ourShader;
 
 
+#ifndef SPH_PARTICLE_NUM
+#define SPH_PARTICLE_NUM 800
+#endif
+
+extern constexpr int particle_num = SPH_PARTICLE_NUM;
+
+#ifndef VOXEL_FIELD_SIZE
+#define VOXEL_FIELD_SIZE 16
+#endif
+
+// boundary, see details in physics.h
+//extern const GLfloat x_max = 12.0f, x_min = 0.0f, y_max = 30.0f, y_min = 0.0f, z_max = 12.0f, z_min = 0.0f;
+extern constexpr GLfloat x_max = VOXEL_FIELD_SIZE, x_min = 0.0f, y_max = 30.0f, y_min = 0.0f, z_max = VOXEL_FIELD_SIZE, z_min = 0.0f;
+
+
 // ----------------------------------------------------------------------physic part------------------------------------------------------
 
 // particle system part:
@@ -140,9 +155,6 @@ public:
 
 };
 
-// definition of the bounding box... needed here
-extern const GLfloat x_max, x_min, y_max, y_min, z_max, z_min;
-
 
 
 
@@ -183,7 +195,6 @@ extern const unsigned int SCR_WIDTH;
 extern const unsigned int SCR_HEIGHT;
 extern Camera camera;
 extern int voxel_x_num, voxel_y_num, voxel_z_num;
-extern const int particle_num;
 
 // pre-defined colors
 extern glm::vec4 red;

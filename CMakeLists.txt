@@ -46,6 +46,15 @@ if(OFFLINE_RENDERING)
     add_compile_definitions(OFFLINE_RENDERING)
 endif()
 
+# particle number settings
+if(SPH_PARTICLE_NUM)
+    add_compile_definitions(SPH_PARTICLE_NUM=${SPH_PARTICLE_NUM})
+endif()
+
+if(VOXEL_FIELD_SIZE)
+    add_compile_definitions(VOXEL_FIELD_SIZE=${VOXEL_FIELD_SIZE})
+endif()
+
 set(IMGUI_FILES
 ./3rd_party/imgui/imgui.cpp
 ./3rd_party/imgui/imgui_draw.cpp

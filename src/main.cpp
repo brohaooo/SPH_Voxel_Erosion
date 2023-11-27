@@ -84,9 +84,6 @@ const int num_frames_to_average = 100;
 int num_frames_in_sliding_window = 0;
 std::list<float> frameTime_list;
 
-// boundary, see details in physics.h
-//extern const GLfloat x_max = 12.0f, x_min = 0.0f, y_max = 30.0f, y_min = 0.0f, z_max = 12.0f, z_min = 0.0f;
-extern const GLfloat x_max = 64.0f, x_min = 0.0f, y_max = 30.0f, y_min = 0.0f, z_max = 64.0f, z_min = 0.0f;
 bounding_box boundary = bounding_box(x_max, x_min, y_max, y_min, z_max, z_min);
 
 // voxel field
@@ -110,7 +107,6 @@ int neighbour_grid_y_num = voxel_y_num;
 int neighbour_grid_z_num = voxel_z_num;
 neighbourhood_grid G = neighbourhood_grid(neighbour_grid_x_num, neighbour_grid_y_num, neighbour_grid_z_num);
 
-extern const int particle_num = 35000;
 int current_particle_num;
 float particle_render_scale = particle_render_scale_maximum;
 
